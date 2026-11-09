@@ -16,6 +16,8 @@ export interface RequestOptions extends CacheOptions {
   /** The visitor's languages, passed on so that messages come translated. */
   locale?: string;
   requestId?: string;
+  /** More headers, such as the visitor's forwarded headers. */
+  headers?: Record<string, string>;
 }
 
 export interface ClientOptions {
@@ -103,7 +105,7 @@ export class BackendClient {
     if (!this.breaker.allow()) {
       throw new BackendError("circuit_open", 0, "The backend is unavailable");
     }
-    const headers: Record<string, string> = { Accept: "application/json" };
+    const headers: Record<string, string> = { ...options.headers, Accept: "application/json" };
     if (options.locale) {
       headers["Accept-Language"] = options.locale;
       headers["X-Locale"] = options.locale;
