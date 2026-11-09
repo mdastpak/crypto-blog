@@ -15,6 +15,28 @@ function problems(env: Record<string, string | undefined>): string[] {
   throw new Error("expected a ConfigError");
 }
 
+describe("sites", () => {
+  it("reads the site settings", () => {
+    const config = parseConfig({
+      ...valid,
+      SITE_DETECTION: "false",
+      SITE_TIMEOUT_MS: "300",
+      TRUST_PROXY_HEADERS: "true",
+    });
+    expect(config).toMatchObject({
+      siteDetection: false,
+      siteTimeoutMs: 300,
+      trustProxyHeaders: true,
+    });
+  });
+
+  it("refuses a value that is not a boolean", () => {
+    expect(problems({ ...valid, TRUST_PROXY_HEADERS: "yes" })).toEqual([
+      "TRUST_PROXY_HEADERS must be true or false",
+    ]);
+  });
+});
+
 describe("brand", () => {
   it("reads BRAND and DESIGN_GALLERY", () => {
     const config = parseConfig({ ...valid, BRAND: " Emerald ", DESIGN_GALLERY: "true" });
@@ -72,6 +94,9 @@ describe("parseConfig", () => {
       defaultLocale: "fa",
       brand: "default",
       designGallery: false,
+      siteDetection: true,
+      siteTimeoutMs: 800,
+      trustProxyHeaders: false,
     });
   });
 

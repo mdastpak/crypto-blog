@@ -10,6 +10,9 @@ import {
   currencySchema,
   feedItemSchema,
   localesInfoSchema,
+  alternateSchema,
+  siteInfoSchema,
+  siteSchema,
   statusSchema,
   venueComparisonSchema,
   venueQuoteSchema,
@@ -39,6 +42,9 @@ const PAIRS: [string, z.ZodObject][] = [
   ["public.LocalesInfo", localesInfoSchema],
   ["i18n.Locale", backendLocaleSchema],
   ["platform.Status", statusSchema],
+  ["public.SiteInfo", siteInfoSchema],
+  ["sites.Site", siteSchema],
+  ["sites.Alternate", alternateSchema],
 ];
 
 function baseType(schema: z.ZodType): string {

@@ -34,6 +34,13 @@ describe("matchLocale", () => {
 describe("negotiateLocale", () => {
   const enabled = ["fa", "en"] as const;
 
+  it("prefers lang, then the cookie, then the site's locale", () => {
+    expect(negotiateLocale({ lang: "en", cookie: "fa" }, enabled, "fa")).toBe("en");
+    expect(negotiateLocale({ lang: "de", cookie: "en" }, enabled, "fa")).toBe("en");
+    expect(negotiateLocale({ siteLocale: "en", acceptLanguage: "fa" }, enabled, "fa")).toBe("en");
+    expect(negotiateLocale({ cookie: "fa", siteLocale: "en" }, enabled, "en")).toBe("fa");
+  });
+
   it("prefers the cookie", () => {
     expect(negotiateLocale({ cookie: "en", acceptLanguage: "fa" }, enabled, "fa")).toBe("en");
   });

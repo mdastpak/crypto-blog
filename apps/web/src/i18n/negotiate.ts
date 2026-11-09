@@ -39,24 +39,30 @@ export function matchLocale(tag: string, enabled: readonly Locale[]): Locale | u
 }
 
 export interface NegotiationInput {
+  /** `?lang=`: the locale a redirect from another site carries. */
+  lang?: string | null | undefined;
   cookie?: string | undefined;
+  /** The locale the backend chose for the visitor's site. */
+  siteLocale?: string | undefined;
   acceptLanguage?: string | null | undefined;
 }
 
 /**
- * Chooses the locale of a visitor without one in the URL: the switcher's
- * choice (the `locale` cookie, shared with the backend), then the browser's
- * languages, then the release default. A value that names no enabled locale
- * is skipped, never an error.
+ * Chooses the locale of a visitor without one in the URL: the `lang`
+ * parameter of a redirect from another site (cookies do not cross domains),
+ * the switcher's choice (the `locale` cookie, shared with the backend), the
+ * locale the backend chose for the visitor's site, the browser's languages,
+ * then the release default. A value that names no enabled locale is
+ * skipped, never an error.
  */
 export function negotiateLocale(
   input: NegotiationInput,
   enabled: readonly Locale[],
   defaultLocale: Locale,
 ): Locale {
-  if (input.cookie) {
-    const fromCookie = matchLocale(input.cookie, enabled);
-    if (fromCookie) return fromCookie;
+  for (const explicit of [input.lang, input.cookie, input.siteLocale]) {
+    const match = explicit ? matchLocale(explicit, enabled) : undefined;
+    if (match) return match;
   }
   for (const tag of parseAcceptLanguage(input.acceptLanguage)) {
     const match = matchLocale(tag, enabled);

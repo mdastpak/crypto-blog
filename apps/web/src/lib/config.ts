@@ -45,6 +45,15 @@ const schema = z.object({
       }
       return tags as Locale[];
     }),
+  SITE_DETECTION: z
+    .enum(["true", "false"], { error: "must be true or false" })
+    .default("true")
+    .transform((value) => value === "true"),
+  SITE_TIMEOUT_MS: positiveInt(10_000).default(800),
+  TRUST_PROXY_HEADERS: z
+    .enum(["true", "false"], { error: "must be true or false" })
+    .default("false")
+    .transform((value) => value === "true"),
   BRAND: z
     .string()
     .default(DEFAULT_BRAND)
@@ -71,6 +80,11 @@ export interface Config {
   locales: Locale[];
   /** The locale of a visitor whose languages match none of `locales`. */
   defaultLocale: Locale;
+  /** Asks the backend for the visitor's country site on the first page view of a visit. */
+  siteDetection: boolean;
+  siteTimeoutMs: number;
+  /** Trust X-Forwarded-For/-Host/-Proto: only behind a load balancer that sets them. */
+  trustProxyHeaders: boolean;
   /** The brand of this release (design/brands.ts). */
   brand: string;
   /** Serves the component gallery at /{locale}/design; off in production. */
@@ -129,6 +143,9 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     logLevel: c.LOG_LEVEL,
     locales,
     defaultLocale,
+    siteDetection: c.SITE_DETECTION,
+    siteTimeoutMs: c.SITE_TIMEOUT_MS,
+    trustProxyHeaders: c.TRUST_PROXY_HEADERS,
     brand: c.BRAND,
     designGallery: c.DESIGN_GALLERY,
   };

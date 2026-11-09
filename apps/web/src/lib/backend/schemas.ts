@@ -175,3 +175,37 @@ export const statusSchema = z.object({
   lockdowns: z.array(z.unknown()).optional(),
 });
 export type PlatformStatus = z.infer<typeof statusSchema>;
+
+export const siteSchema = z.object({
+  id: z.string(),
+  domain: z.string(),
+  url: z.string().optional(),
+  locales: z.array(z.string()).optional(),
+  default_locale: z.string().optional(),
+  countries: z.array(z.string()).optional(),
+  enforce: z.boolean().optional(),
+});
+export type Site = z.infer<typeof siteSchema>;
+
+export const alternateSchema = z.object({
+  hreflang: z.string(),
+  locale: z.string().optional(),
+  site: z.string().optional(),
+  url: z.string(),
+});
+export type Alternate = z.infer<typeof alternateSchema>;
+
+/** `GET /public/site`: the visitor's site, locale, and redirect decision. */
+export const siteInfoSchema = z.object({
+  country: z.string().optional(),
+  country_source: z.string().optional(),
+  current_site: z.string().optional(),
+  site: siteSchema.optional(),
+  reason: z.string().optional(),
+  locale: backendLocaleSchema.optional(),
+  locale_source: z.string().optional(),
+  redirect: z.object({ needed: z.boolean(), url: z.string().optional() }).optional(),
+  sites: z.array(siteSchema).optional(),
+  alternates: z.array(alternateSchema).optional(),
+});
+export type SiteInfo = z.infer<typeof siteInfoSchema>;
