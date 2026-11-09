@@ -9,6 +9,7 @@ import {
   currencyPageSchema,
   feedPageSchema,
   localesInfoSchema,
+  siteInfoSchema,
   statusSchema,
   venueComparisonSchema,
 } from "./schemas";
@@ -102,6 +103,17 @@ export const publicApi = {
     backend().get("/public/locales", localesInfoSchema, {
       revalidate: REVALIDATE.reference,
       tags: [tags.locales],
+    }),
+
+  /**
+   * Every country site, for hreflang links. The answer also holds the
+   * caller's GeoIP decision, which is not used here: only `sites`.
+   */
+  getSites: () =>
+    backend().get("/public/site", siteInfoSchema, {
+      query: { path: "/" },
+      revalidate: REVALIDATE.reference,
+      tags: [tags.sites],
     }),
 
   getStatus: () =>

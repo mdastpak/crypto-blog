@@ -1,10 +1,11 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CoinLogo } from "@/components/coins/CoinLogo";
 import { PriceChart, type ChartPoint } from "@/components/coins/PriceChart";
 import { VenueTable } from "@/components/coins/VenueTable";
 import { RelatedArticles } from "@/components/cms/RelatedArticles";
-import { Badge, Breadcrumbs, ButtonLink, Card, PriceChange } from "@/components/ui";
+import { Badge, ButtonLink, Card, PriceChange } from "@/components/ui";
 import { formatDate, formatNumber, formatPrice } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
 import { enabledLocale } from "@/i18n/server";
@@ -12,6 +13,10 @@ import { createTranslator } from "@/i18n/translate";
 import { isNotFound, marketData, type Asset } from "@/lib/backend";
 import { getConfig } from "@/lib/config";
 import { referencePrice, toNumber, visibleQuotes } from "@/lib/market/price";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { catalog } from "@/lib/seo/catalog-server";
+import { coinThing } from "@/lib/seo/jsonld";
+import { pageMetadata } from "@/lib/seo/metadata";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -38,10 +43,18 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   if (!locale) return {};
   const asset = await loadAsset(slug);
   const t = createTranslator(locale);
-  return {
+  return pageMetadata({
+    locale,
+    path: `coins/${slug}`,
     title: t("COIN_TITLE", { name: asset.name, symbol: asset.symbol }),
     description: t("COIN_DESCRIPTION", { name: asset.name, symbol: asset.symbol }),
-  };
+    image: {
+      url: `/og/coins/${encodeURIComponent(slug)}`,
+      width: 1200,
+      height: 630,
+      alt: asset.name,
+    },
+  });
 }
 
 export default async function CoinPage({ params }: { params: Params }) {
@@ -68,7 +81,21 @@ export default async function CoinPage({ params }: { params: Params }) {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
-      <Breadcrumbs
+      {/* The catalog's schema.org Thing, from this node's copy of the feed. */}
+      <JsonLd
+        data={coinThing(
+          catalog().get(slug)?.structuredData,
+          {
+            name: asset.name,
+            symbol: asset.symbol,
+            description: asset.description,
+            logo: asset.logo_url,
+          },
+          `${getConfig().publicSiteUrl}/${locale}/coins/${slug}`,
+        )}
+      />
+      <PageBreadcrumbs
+        current={`/${locale}/coins/${slug}`}
         label={t("BREADCRUMBS_LABEL")}
         items={[
           { label: t("HOME_LINK"), href: `/${locale}` },

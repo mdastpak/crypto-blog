@@ -1,5 +1,6 @@
 import "server-only";
 import { ConfigError, getConfig } from "./config";
+import { startCatalogSync } from "./seo/catalog-server";
 import { installShutdownHandlers } from "./shutdown";
 
 /**
@@ -17,4 +18,6 @@ export function startServer(): void {
     process.exit(1);
   }
   installShutdownHandlers();
+  // The copy of the catalog behind sitemaps, coin JSON-LD, and 410s (docs/seo.md).
+  startCatalogSync();
 }

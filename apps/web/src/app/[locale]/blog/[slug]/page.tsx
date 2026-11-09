@@ -1,3 +1,4 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -8,10 +9,14 @@ import { editorialContext, maybeEditorialContext } from "@/components/cms/contex
 import { documentMetadata, isPreview } from "@/components/cms/document";
 import { langAttributes, PreviewBanner, TranslationNotice } from "@/components/cms/Notices";
 import { RichText } from "@/components/cms/RichText";
-import { Badge, Breadcrumbs } from "@/components/ui";
+import { Badge } from "@/components/ui";
 import { formatDate } from "@/i18n/format";
 import { getArticle, mediaUrl, pick, shown, text } from "@/lib/cms";
 import { safeHref } from "@/components/cms/RichText";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getBrand } from "@/design/brands";
+import { getConfig } from "@/lib/config";
+import { article as articleLd } from "@/lib/seo/jsonld";
 
 type Params = Promise<{ locale: string; slug: string }>;
 
@@ -43,6 +48,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
       text(article.seo.description, view.docOrder) ?? text(article.excerpt, view.docOrder),
     image: article.cover,
     preview,
+    article: {
+      publishedTime: article.publishedAt ?? undefined,
+      modifiedTime: article.updatedAt ?? undefined,
+    },
   });
 }
 
@@ -63,6 +72,31 @@ export default async function ArticlePage({ params }: { params: Params }) {
   const cover = mediaUrl(article.cover, "hero", ctx.mediaBase);
   const author = article.author;
   const category = article.categories[0];
+  const { publicSiteUrl, brand: brandId } = getConfig();
+  const brand = getBrand(brandId);
+  const jsonLd = articleLd({
+    news: article.type === "news",
+    headline: title,
+    description: excerpt?.value,
+    url: `${publicSiteUrl}/${docLocale}/blog/${slug}`,
+    locale: docLocale,
+    image: cover
+      ? cover.src.startsWith("/")
+        ? `${publicSiteUrl}${cover.src}`
+        : cover.src
+      : undefined,
+    publishedAt: article.publishedAt,
+    updatedAt: article.updatedAt,
+    author: author
+      ? {
+          name: text(author.name, ctx.order) ?? author.slug,
+          url: `${publicSiteUrl}/${locale}/blog/authors/${author.slug}`,
+        }
+      : undefined,
+    publisher: { name: brand.name[locale], url: publicSiteUrl, logo: brand.logo.light },
+    sources: article.sources,
+    generated: !!article.generatedBy,
+  });
   // Each note in the reader's language when it has one, newest first.
   const corrections = article.corrections
     .map((c) => ({ ...c, note: pick(c.note, ctx.order) }))
@@ -73,7 +107,9 @@ export default async function ArticlePage({ params }: { params: Params }) {
     <>
       {preview && <PreviewBanner locale={locale} path={`/${locale}/blog/${slug}`} />}
       <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
-        <Breadcrumbs
+        <JsonLd data={jsonLd} />
+        <PageBreadcrumbs
+          current={`/${locale}/blog/${slug}`}
           label={t("BREADCRUMBS_LABEL")}
           items={[
             { label: t("HOME_LINK"), href: `/${locale}` },

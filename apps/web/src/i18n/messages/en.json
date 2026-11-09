@@ -101,6 +101,8 @@
   "AUTHOR_TITLE": "Articles by {name}",
   "COIN_RELATED_ARTICLES": "Articles about {name}",
   "COIN_VIEW": "View {name}",
+  "COIN_GONE_TITLE": "This coin is no longer listed",
+  "COIN_GONE_TEXT": "It has been removed from our catalog. See the other coins.",
   "MARKETS_TITLE": "Markets",
   "MARKETS_DESCRIPTION": "Every pair traded on our exchange, with its median price across exchanges.",
   "MARKETS_COL_PAIR": "Pair",

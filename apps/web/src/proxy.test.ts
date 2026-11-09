@@ -174,3 +174,33 @@ describe("country sites", () => {
     expect(response.cookies.get("site_checked")?.value).toBe("1");
   });
 });
+
+describe("removed coins", () => {
+  it("answers 410 for a coin the catalog marks removed, in the page's locale", async () => {
+    const proxy = await load();
+    const { CatalogCopy, catalogCopy } = await import("@/lib/seo/catalog");
+    const key = Symbol.for("crypto-blog.catalog-copy");
+    delete (globalThis as Record<symbol, unknown>)[key];
+    const copy = catalogCopy(
+      () =>
+        new CatalogCopy(async () => ({
+          items: [
+            { slug: "terra-classic", updated_at: "2026-11-09T10:00:00Z", removed: true },
+            { slug: "bitcoin", updated_at: "2026-11-09T10:00:00Z" },
+          ],
+          has_more: false,
+        })),
+    )!;
+    await copy.sync();
+    try {
+      const response = await proxy(request("/en/coins/terra-classic"));
+      expect(response.status).toBe(410);
+      expect(response.headers.get("content-type")).toContain("text/html");
+      expect(await response.text()).toContain('lang="en"');
+      expect((await proxy(request("/en/coins/bitcoin"))).status).not.toBe(410);
+      expect((await proxy(request("/en/coins/terra-classic/extra"))).status).not.toBe(410);
+    } finally {
+      delete (globalThis as Record<symbol, unknown>)[key];
+    }
+  });
+});
