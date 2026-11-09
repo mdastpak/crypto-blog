@@ -3,6 +3,7 @@
 #   docker build -t crypto-blog-web .                          # the web app (default)
 #   docker build --target cms -t crypto-blog-cms .             # the CMS
 #   docker build --target cms-migrate -t crypto-blog-cms-migrate .  # its migration job
+#   docker build --target news-worker -t crypto-blog-news .    # the news worker (and its migrations)
 
 ARG NODE_VERSION=22
 
@@ -15,6 +16,7 @@ FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/web/package.json apps/web/
 COPY apps/cms/package.json apps/cms/
+COPY apps/news-worker/package.json apps/news-worker/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM deps AS build-web
@@ -47,6 +49,22 @@ EXPOSE 3001
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 \
   CMD wget -qO- "http://127.0.0.1:${PORT}/health/live" >/dev/null || exit 1
 CMD ["node", "apps/cms/server.js"]
+
+# The news worker runs its TypeScript with tsx, with production dependencies only.
+# Its migrations: docker run --rm -e DATABASE_URL=… crypto-blog-news node --import tsx src/migrate.ts
+FROM base AS news-worker
+ENV NODE_ENV=production PORT=3002
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/news-worker/package.json apps/news-worker/
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --prod --filter news-worker...
+COPY apps/news-worker/src apps/news-worker/src
+WORKDIR /repo/apps/news-worker
+USER node
+EXPOSE 3002
+HEALTHCHECK --interval=15s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget -qO- "http://127.0.0.1:${PORT}/health/live" >/dev/null || exit 1
+CMD ["node", "--import", "tsx", "src/main.ts"]
 
 FROM node:${NODE_VERSION}-alpine AS web
 ENV NODE_ENV=production \

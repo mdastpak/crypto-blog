@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>خبرگزاری رمزارز</title>
+    <item>
+      <title>قيمت بيت‌كوين از ۷۰ هزار دلار گذشت</title>
+      <link>https://fa.example.ir/news/1234?utm_campaign=x</link>
+      <description>بیت‌کوین امروز با ورود سرمایه به صندوق‌ها رشد کرد و اتریوم هم بالا رفت.</description>
+      <pubDate>Mon, 09 Nov 2026 10:00:00 +0330</pubDate>
+    </item>
+    <item>
+      <title>قیمت بیت‌کوین از ۷۰ هزار دلار گذشت</title>
+      <link>https://fa.example.ir/news/1234</link>
+      <description>نسخه تکراری همان خبر.</description>
+    </item>
+  </channel>
+</rss>
