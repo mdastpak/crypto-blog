@@ -30,7 +30,7 @@ export function LocaleSwitcher({ current, locales, label }: LocaleSwitcherProps)
           lang={locale}
           aria-current={locale === current ? "true" : undefined}
           className={
-            locale === current ? "font-semibold underline" : "opacity-80 hover:opacity-100"
+            locale === current ? "font-semibold text-text underline" : "text-muted hover:text-text"
           }
           onClick={() => {
             document.cookie = `${LOCALE_COOKIE}=${locale}; Path=/; Max-Age=${ONE_YEAR}; SameSite=Lax`;

@@ -34,7 +34,7 @@ export function ThemeSwitcher({ label, names }: ThemeSwitcherProps) {
         aria-label={label}
         value={theme}
         onChange={(event) => setTheme(event.target.value as Theme)}
-        className="rounded border border-current/20 bg-transparent px-2 py-1"
+        className="rounded-lg border border-border bg-background px-2 py-1"
       >
         {THEMES.map((value) => (
           <option key={value} value={value}>

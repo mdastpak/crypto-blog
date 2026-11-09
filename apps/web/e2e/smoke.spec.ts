@@ -51,3 +51,17 @@ test("liveness and readiness answer", async ({ request }) => {
   expect(ready.status()).toBe(200);
   expect(await ready.json()).toEqual({ status: "ok" });
 });
+
+test("the design gallery renders the brand's tokens in both themes", async ({ page }) => {
+  await page.goto("/en/design");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Design system");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", "noindex, nofollow");
+  const background = () =>
+    page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue("--background"),
+    );
+  expect(await background()).toBe("#ffffff");
+  await page.getByRole("combobox", { name: "Theme" }).selectOption("dark");
+  expect(await background()).toBe("#0b1220");
+  await expect(page.getByText("✗")).toHaveCount(0);
+});

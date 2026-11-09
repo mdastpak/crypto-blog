@@ -12,5 +12,11 @@
   "THEME_SYSTEM": "سیستم",
   "NOT_FOUND_TITLE": "صفحه پیدا نشد",
   "NOT_FOUND_BODY": "صفحه‌ای که دنبالش هستید وجود ندارد یا جابه‌جا شده است.",
-  "NOT_FOUND_HOME": "بازگشت به صفحه اصلی"
+  "NOT_FOUND_HOME": "بازگشت به صفحه اصلی",
+  "FOOTER_NOTE": "قیمت‌ها و داده‌ها فقط برای اطلاع‌رسانی است و توصیه سرمایه‌گذاری نیست.",
+  "BREADCRUMBS_LABEL": "مسیر صفحه",
+  "PAGINATION_LABEL": "صفحه‌ها",
+  "PAGINATION_PREVIOUS": "قبلی",
+  "PAGINATION_NEXT": "بعدی",
+  "HOME_LINK": "خانه"
 }

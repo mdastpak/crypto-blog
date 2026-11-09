@@ -12,5 +12,11 @@
   "THEME_SYSTEM": "System",
   "NOT_FOUND_TITLE": "Page not found",
   "NOT_FOUND_BODY": "The page you are looking for does not exist or has moved.",
-  "NOT_FOUND_HOME": "Back to the home page"
+  "NOT_FOUND_HOME": "Back to the home page",
+  "FOOTER_NOTE": "Prices and data are for information only and are not investment advice.",
+  "BREADCRUMBS_LABEL": "Breadcrumbs",
+  "PAGINATION_LABEL": "Pages",
+  "PAGINATION_PREVIOUS": "Previous",
+  "PAGINATION_NEXT": "Next",
+  "HOME_LINK": "Home"
 }

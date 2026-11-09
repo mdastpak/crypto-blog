@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { BRANDS, DEFAULT_BRAND, isBrand } from "@/design/brands";
 import { AVAILABLE_LOCALES, isAvailableLocale, type Locale } from "@/i18n/locales";
 
 /** Release regions, the same values as the backend's DEPLOYMENT_REGION. */
@@ -44,6 +45,15 @@ const schema = z.object({
       }
       return tags as Locale[];
     }),
+  BRAND: z
+    .string()
+    .default(DEFAULT_BRAND)
+    .transform((value) => value.trim().toLowerCase())
+    .refine(isBrand, { error: `must be one of: ${Object.keys(BRANDS).join(", ")}` }),
+  DESIGN_GALLERY: z
+    .enum(["true", "false"], { error: "must be true or false" })
+    .default("false")
+    .transform((value) => value === "true"),
   DEFAULT_LOCALE: z
     .string()
     .optional()
@@ -61,6 +71,10 @@ export interface Config {
   locales: Locale[];
   /** The locale of a visitor whose languages match none of `locales`. */
   defaultLocale: Locale;
+  /** The brand of this release (design/brands.ts). */
+  brand: string;
+  /** Serves the component gallery at /{locale}/design; off in production. */
+  designGallery: boolean;
 }
 
 /** Thrown when the environment does not describe a valid configuration. */
@@ -115,6 +129,8 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     logLevel: c.LOG_LEVEL,
     locales,
     defaultLocale,
+    brand: c.BRAND,
+    designGallery: c.DESIGN_GALLERY,
   };
 }
 

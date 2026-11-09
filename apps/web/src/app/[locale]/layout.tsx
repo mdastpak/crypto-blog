@@ -4,7 +4,9 @@ import "../globals.css";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
+import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
+import { brandCss, getBrand } from "@/design/brands";
 import { textDirection } from "@/i18n/locales";
 import { enabledLocale } from "@/i18n/server";
 import { getConfig } from "@/lib/config";
@@ -25,9 +27,12 @@ export async function generateMetadata({
   const locale = enabledLocale((await params).locale);
   if (!locale) return {};
   const t = createTranslator(locale);
+  const brand = getBrand(getConfig().brand);
+  const name = brand.name[locale];
   return {
-    title: { default: t("SITE_NAME"), template: `%s | ${t("SITE_NAME")}` },
+    title: { default: name, template: `%s | ${name}` },
     description: t("SITE_DESCRIPTION"),
+    icons: { icon: brand.favicon },
   };
 }
 
@@ -41,21 +46,28 @@ export default async function LocaleLayout({
   const locale = enabledLocale((await params).locale);
   if (!locale) notFound();
   const t = createTranslator(locale);
+  const { brand: brandId, locales } = getConfig();
+  const brand = getBrand(brandId);
   return (
     // The theme script sets data-theme before React hydrates.
     <html lang={locale} dir={textDirection(locale)} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        {/* The brand's color tokens, light and dark (design/brands.ts). */}
+        <style dangerouslySetInnerHTML={{ __html: brandCss(brand) }} />
       </head>
-      <body className="min-h-screen antialiased">
+      <body className="flex min-h-screen flex-col antialiased">
         <a
           href="#content"
           className="sr-only focus:not-sr-only focus:absolute focus:start-2 focus:top-2"
         >
           {t("NAV_SKIP_TO_CONTENT")}
         </a>
-        <SiteHeader locale={locale} locales={getConfig().locales} />
-        <div id="content">{children}</div>
+        <SiteHeader locale={locale} locales={locales} brand={brand} />
+        <div id="content" className="flex-1">
+          {children}
+        </div>
+        <SiteFooter locale={locale} brand={brand} />
       </body>
     </html>
   );
