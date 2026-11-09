@@ -20,6 +20,7 @@ export default defineConfig({
       BACKEND_API_URL: "http://127.0.0.1:9/api/v1",
       PUBLIC_SITE_URL: baseURL,
       DEPLOYMENT_REGION: "ir",
+      DESIGN_GALLERY: "true",
       PORT: String(port),
       HOSTNAME: "127.0.0.1",
     },

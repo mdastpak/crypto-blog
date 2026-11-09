@@ -15,6 +15,20 @@ function problems(env: Record<string, string | undefined>): string[] {
   throw new Error("expected a ConfigError");
 }
 
+describe("brand", () => {
+  it("reads BRAND and DESIGN_GALLERY", () => {
+    const config = parseConfig({ ...valid, BRAND: " Emerald ", DESIGN_GALLERY: "true" });
+    expect(config.brand).toBe("emerald");
+    expect(config.designGallery).toBe(true);
+  });
+
+  it("refuses an unknown brand", () => {
+    expect(problems({ ...valid, BRAND: "nope" })).toEqual([
+      "BRAND must be one of: default, emerald",
+    ]);
+  });
+});
+
 describe("locales", () => {
   it("puts English first in an international release", () => {
     const config = parseConfig({ ...valid, DEPLOYMENT_REGION: "international" });
@@ -56,6 +70,8 @@ describe("parseConfig", () => {
       logLevel: "info",
       locales: ["fa", "en"],
       defaultLocale: "fa",
+      brand: "default",
+      designGallery: false,
     });
   });
 
