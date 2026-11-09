@@ -23,6 +23,11 @@ export function SiteHeader({ locale, locales, brand }: SiteHeaderProps) {
           <img src={brand.logo.dark} alt="" width={28} height={28} className="hidden dark:block" />
           <span>{brand.name[locale]}</span>
         </Link>
+        <nav aria-label={t("SITE_NAME")} className="me-auto ms-6 hidden text-sm sm:block">
+          <Link href={`/${locale}/coins`} className="text-muted hover:text-text">
+            {t("NAV_COINS")}
+          </Link>
+        </nav>
         <div className="flex items-center gap-4">
           {locales.length > 1 && (
             <LocaleSwitcher current={locale} locales={locales} label={t("LOCALE_SWITCHER_LABEL")} />

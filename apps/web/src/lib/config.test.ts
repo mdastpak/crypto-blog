@@ -86,6 +86,7 @@ describe("parseConfig", () => {
     expect(parseConfig(valid)).toEqual({
       backendApiUrl: "https://api.example.com/api/v1",
       publicSiteUrl: "https://blog.example.com",
+      exchangeAppUrl: undefined,
       region: "ir",
       backendTimeoutMs: 5000,
       shutdownDrainSeconds: 10,

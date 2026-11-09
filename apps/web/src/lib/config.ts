@@ -24,6 +24,7 @@ const schema = z.object({
     .default("ir")
     .transform((value) => value.trim().toLowerCase())
     .pipe(z.enum(REGIONS, { error: `must be one of: ${REGIONS.join(", ")}` })),
+  EXCHANGE_APP_URL: baseUrl.optional(),
   BACKEND_TIMEOUT_MS: positiveInt(60_000).default(5_000),
   SHUTDOWN_DRAIN_SECONDS: z.coerce.number().int().min(0).max(300).default(10),
   LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
@@ -72,6 +73,8 @@ const schema = z.object({
 export interface Config {
   backendApiUrl: string;
   publicSiteUrl: string;
+  /** The exchange's web app, for "Trade" links on listed coins; none when unset. */
+  exchangeAppUrl?: string;
   region: Region;
   backendTimeoutMs: number;
   shutdownDrainSeconds: number;
@@ -137,6 +140,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
   return {
     backendApiUrl: c.BACKEND_API_URL,
     publicSiteUrl: c.PUBLIC_SITE_URL,
+    exchangeAppUrl: c.EXCHANGE_APP_URL,
     region: c.DEPLOYMENT_REGION,
     backendTimeoutMs: c.BACKEND_TIMEOUT_MS,
     shutdownDrainSeconds: c.SHUTDOWN_DRAIN_SECONDS,
