@@ -43,33 +43,48 @@ export function visibleQuotes(quotes: VenueQuote[], region: Region): VenueQuote[
  * any. Stale and outlier prices are listed on the page but never counted.
  */
 export function referencePrice(quotes: VenueQuote[], region: Region): ReferencePrice | undefined {
-  const usable = visibleQuotes(quotes, region).filter((q) => !q.stale && !q.outlier);
   for (const quote of REFERENCE_QUOTES) {
-    const group = usable.filter((q) => q.quote.toUpperCase() === quote);
-    const prices = group.map((q) => toNumber(q.last)).filter((n): n is number => n !== undefined);
-    const price = median(prices);
-    if (price === undefined) continue;
-    const changes = group.flatMap((q) => {
-      const open = toNumber(q.open);
-      const last = toNumber(q.last);
-      return open && last !== undefined ? [last / open - 1] : [];
-    });
-    const byVolume = [...group].sort(
-      (a, b) => (toNumber(b.volume_quote) ?? 0) - (toNumber(a.volume_quote) ?? 0),
-    );
-    return {
-      quote,
-      price,
-      change: median(changes),
-      venues: prices.length,
-      observedAt: group
-        .map((q) => q.observed_at)
-        .sort()
-        .at(-1)!,
-      chartVenue: byVolume[0]!.venue,
-    };
+    const price = priceIn(quotes, quote, region);
+    if (price) return price;
   }
   return undefined;
+}
+
+/**
+ * The price in one quote: the median last price of the visible venues of
+ * that quote that are neither stale nor outliers, or undefined when none is.
+ */
+export function priceIn(
+  quotes: VenueQuote[],
+  quote: string,
+  region: Region,
+): ReferencePrice | undefined {
+  const wanted = quote.toUpperCase();
+  const group = visibleQuotes(quotes, region).filter(
+    (q) => !q.stale && !q.outlier && q.quote.toUpperCase() === wanted,
+  );
+  const prices = group.map((q) => toNumber(q.last)).filter((n): n is number => n !== undefined);
+  const price = median(prices);
+  if (price === undefined) return undefined;
+  const changes = group.flatMap((q) => {
+    const open = toNumber(q.open);
+    const last = toNumber(q.last);
+    return open && last !== undefined ? [last / open - 1] : [];
+  });
+  const byVolume = [...group].sort(
+    (a, b) => (toNumber(b.volume_quote) ?? 0) - (toNumber(a.volume_quote) ?? 0),
+  );
+  return {
+    quote: wanted,
+    price,
+    change: median(changes),
+    venues: prices.length,
+    observedAt: group
+      .map((q) => q.observed_at)
+      .sort()
+      .at(-1)!,
+    chartVenue: byVolume[0]!.venue,
+  };
 }
 
 /** How far a venue's price is from the median of its quote, as a ratio. */

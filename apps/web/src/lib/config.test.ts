@@ -95,6 +95,7 @@ describe("parseConfig", () => {
       defaultLocale: "fa",
       brand: "default",
       designGallery: false,
+      marketQuotes: ["USDT", "IRT"],
       siteDetection: true,
       siteTimeoutMs: 800,
       trustProxyHeaders: false,
@@ -169,6 +170,17 @@ describe("cms", () => {
     expect(problems({ ...valid, REVALIDATE_SECRET: "short", SITE_ID: "a/b" })).toEqual([
       "REVALIDATE_SECRET must be at least 32 characters",
       "SITE_ID must be a site id such as ir or global",
+    ]);
+  });
+
+  it("reads the market quotes, upper case, without repeats", () => {
+    expect(parseConfig(valid).marketQuotes).toEqual(["USDT", "IRT"]);
+    expect(parseConfig({ ...valid, MARKET_QUOTES: " usdt, usdc ,USDT" }).marketQuotes).toEqual([
+      "USDT",
+      "USDC",
+    ]);
+    expect(problems({ ...valid, MARKET_QUOTES: "US-DT" })).toEqual([
+      "MARKET_QUOTES.0 must list symbols such as USDT,IRT",
     ]);
   });
 });

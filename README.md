@@ -42,6 +42,7 @@ The web app reads its configuration from environment variables once, at start-up
 | `BACKEND_API_URL`        | required                       | Base URL of the exchange API, e.g. `https://api.example.com/api/v1`    |
 | `PUBLIC_SITE_URL`        | required                       | Public URL of this site, for canonical URLs                            |
 | `DEPLOYMENT_REGION`      | `ir`                           | Release region, the same value as the backend: `ir` or `international` |
+| `MARKET_QUOTES`          | `USDT,IRT`                     | The quotes the exchange lists every currency against (markets pages)   |
 | `BACKEND_TIMEOUT_MS`     | `5000`                         | Timeout of one request to the backend                                  |
 | `SHUTDOWN_DRAIN_SECONDS` | `10`                           | How long a node keeps serving after SIGTERM (see below)                |
 | `LOG_LEVEL`              | `info`                         | `debug`, `info`, `warn`, or `error`                                    |

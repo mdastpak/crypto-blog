@@ -22,7 +22,7 @@ test("a coin page shows its price, venues, chart, and the unverified note", asyn
   await expect(page.getByRole("note")).toContainText("not listed on our exchange");
   await expect(page.getByText("64,050 USDT").first()).toBeVisible();
   const venues = page.getByRole("table", { name: "Bitcoin prices on each exchange" });
-  await expect(venues.getByRole("row")).toHaveCount(5); // header + 4 venues, IRT shown in an ir release
+  await expect(venues.getByRole("row")).toHaveCount(6); // header + 5 venues, IRT shown in an ir release
   await expect(venues.getByRole("row").filter({ hasText: "Tinyex" })).toContainText("Outlier");
   await expect(
     page.getByRole("img", { name: /daily closing price in USDT at binance/ }),

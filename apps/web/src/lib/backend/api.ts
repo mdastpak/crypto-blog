@@ -91,7 +91,7 @@ export const marketData = {
 };
 
 export const publicApi = {
-  listCurrencies: (query: PageQuery & { q?: string; sort?: string } = {}) =>
+  listCurrencies: (query: PageQuery & { q?: string; sort?: string; symbol?: string } = {}) =>
     backend().get("/public/currencies", currencyPageSchema, {
       query: { ...query },
       revalidate: REVALIDATE.catalog,
