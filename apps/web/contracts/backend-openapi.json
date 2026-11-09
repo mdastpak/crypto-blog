@@ -1,0 +1,1404 @@
+{
+  "paths": {
+    "/api/v1/market-data/assets": {
+      "get": {
+        "parameters": [
+          {
+            "maxLength": 64,
+            "type": "string",
+            "description": "The exact symbol, or a part of the name or slug, in any case",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "description": "The number of assets, 50 by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "The next_cursor of the previous page",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/marketdata.AssetPage"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/market-data/assets/{slug}": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The slug of the asset, such as bitcoin",
+            "name": "slug",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/marketdata.AssetView"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/market-data/assets/{slug}/venues": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The slug of the asset, such as bitcoin",
+            "name": "slug",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/marketdata.VenueComparison"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/market-data/assets/{slug}/candles": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "The slug of the asset, such as bitcoin",
+            "name": "slug",
+            "in": "path",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The venue, such as binance or nobitex",
+            "name": "venue",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "The quote symbol, such as USDT or IRT",
+            "name": "quote",
+            "in": "query",
+            "required": true
+          },
+          {
+            "enum": [
+              "1m",
+              "5m",
+              "15m",
+              "1h",
+              "1d"
+            ],
+            "type": "string",
+            "description": "The candle interval. The pairs of each collection tier are kept at some of them only: 1m for the hot pairs, 5m and 15m for the hot and active pairs.",
+            "name": "interval",
+            "in": "query",
+            "required": true
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "The first open time, RFC 3339",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "The end, exclusive, RFC 3339",
+            "name": "to",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/marketdata.Chart"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/market-data/feed/assets": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "The first change to list, RFC 3339; ignored with a cursor",
+            "name": "updated_since",
+            "in": "query"
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "description": "The number of assets, 50 by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "The next_cursor of the previous page",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/marketdata.FeedPage"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/currencies": {
+      "get": {
+        "parameters": [
+          {
+            "maxLength": 64,
+            "type": "string",
+            "description": "Text in the symbol, English name, or Persian name, normalized; symbols that match it come first",
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "csv",
+            "description": "Symbols, in any case, repeated or comma-separated",
+            "name": "symbol",
+            "in": "query"
+          },
+          {
+            "maxLength": 64,
+            "type": "string",
+            "description": "Text in the English name, in any case",
+            "name": "en_name",
+            "in": "query"
+          },
+          {
+            "maxLength": 64,
+            "type": "string",
+            "description": "Text in the Persian name, with Arabic letters and Persian or Arabic digits matching the Persian ones",
+            "name": "fa_name",
+            "in": "query"
+          },
+          {
+            "maxLength": 128,
+            "type": "string",
+            "description": "The contract address, in any case",
+            "name": "contract",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "Only currencies with a contract, or only those without",
+            "name": "has_contract",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "Only tokens, or only currencies that are not",
+            "name": "is_token",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "Only fiat currencies, or only those that are not",
+            "name": "if_fiat",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created at or after this RFC 3339 time",
+            "name": "created_since",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "Created before this RFC 3339 time",
+            "name": "created_until",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "format": "date-time",
+            "description": "Updated at or after this RFC 3339 time",
+            "name": "updated_since",
+            "in": "query"
+          },
+          {
+            "type": "boolean",
+            "description": "true: only the favorites of the signed-in user, which needs their access token",
+            "name": "favorites",
+            "in": "query"
+          },
+          {
+            "enum": [
+              "symbol",
+              "-symbol",
+              "en_name",
+              "-en_name",
+              "created_at",
+              "-created_at",
+              "updated_at",
+              "-updated_at"
+            ],
+            "type": "string",
+            "description": "The order, with - for descending; the hk breaks ties",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "maximum": 200,
+            "minimum": 1,
+            "type": "integer",
+            "description": "The number of currencies, 50 by default",
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "The next_cursor of the previous page",
+            "name": "cursor",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/public.CurrencyPage"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/locales": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "description": "A locale for this request, such as fa",
+            "name": "lang",
+            "in": "query"
+          },
+          {
+            "type": "string",
+            "description": "The locale an app chose",
+            "name": "X-Locale",
+            "in": "header"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/public.LocalesInfo"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/site": {
+      "get": {
+        "parameters": [
+          {
+            "type": "string",
+            "default": "/",
+            "description": "The page, a local path such as /markets?tab=spot",
+            "name": "path",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/public.SiteInfo"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/public/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/models.APIResponse"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "$ref": "#/definitions/platform.Status"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "i18n.Locale": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Code is the canonical BCP 47 tag, such as \"fa\" or \"en-GB\".",
+          "type": "string",
+          "example": "fa"
+        },
+        "dir": {
+          "description": "Dir is the direction of its text: \"ltr\" or \"rtl\".",
+          "type": "string",
+          "enum": [
+            "ltr",
+            "rtl"
+          ],
+          "example": "rtl"
+        },
+        "name": {
+          "description": "Name is the name of the language in English.",
+          "type": "string",
+          "example": "Persian"
+        },
+        "native_name": {
+          "description": "NativeName is the name of the language in itself, for a language\nswitcher.",
+          "type": "string",
+          "example": "فارسی"
+        }
+      }
+    },
+    "marketdata.AssetPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/marketdata.AssetView"
+          }
+        },
+        "next_cursor": {
+          "description": "NextCursor asks for the next page. It is left out on the last page.",
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.AssetView": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "type": "boolean"
+        },
+        "attribution": {
+          "type": "string"
+        },
+        "circulating_supply": {
+          "type": "string"
+        },
+        "contracts": {
+          "description": "Contracts are the contracts of a token, by network.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/marketdata.Contract"
+          }
+        },
+        "description": {
+          "type": "string"
+        },
+        "kind": {
+          "description": "Kind is coin, token, or unknown.",
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "links": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "logo_url": {
+          "type": "string"
+        },
+        "market_cap_rank": {
+          "type": "integer"
+        },
+        "max_supply": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "total_supply": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "verified": {
+          "description": "Verified is true only for an asset that an administrator linked to a\ncurrency listed on this exchange; Label says the same for display.",
+          "type": "boolean"
+        }
+      }
+    },
+    "marketdata.Attribution": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.CandlePoint": {
+      "type": "object",
+      "properties": {
+        "c": {
+          "type": "string"
+        },
+        "h": {
+          "type": "string"
+        },
+        "l": {
+          "type": "string"
+        },
+        "o": {
+          "type": "string"
+        },
+        "t": {
+          "description": "T is the open time of the candle.",
+          "type": "string"
+        },
+        "v": {
+          "description": "V is the volume in the base asset.",
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.Chart": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "string"
+        },
+        "candles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/marketdata.CandlePoint"
+          }
+        },
+        "from": {
+          "type": "string"
+        },
+        "interval": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        },
+        "venue": {
+          "type": "string"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "marketdata.Contract": {
+      "type": "object",
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "network": {
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.FeedItem": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "description": "Asset is the asset with its description, links, and contracts, as\nGET /market-data/assets/{slug} serves it.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/marketdata.AssetView"
+            }
+          ]
+        },
+        "attribution": {
+          "description": "Attribution must be shown with the data of the asset.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/marketdata.Attribution"
+            }
+          ]
+        },
+        "removed": {
+          "type": "boolean"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "structured_data": {
+          "description": "StructuredData is a schema.org description of the asset, for the\nJSON-LD of a page. The page adds its own url.",
+          "type": "object"
+        },
+        "updated_at": {
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.FeedPage": {
+      "type": "object",
+      "properties": {
+        "has_more": {
+          "description": "HasMore says that more assets changed already: ask again at once.",
+          "type": "boolean"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/marketdata.FeedItem"
+          }
+        },
+        "next_cursor": {
+          "description": "NextCursor resumes the feed after the last item. It is set on every\npage, the last one too: keep it, and ask with it later for the\nassets that change after.",
+          "type": "string"
+        }
+      }
+    },
+    "marketdata.VenueComparison": {
+      "type": "object",
+      "properties": {
+        "asset": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "outlier_percent": {
+          "type": "string"
+        },
+        "quotes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/marketdata.VenueQuote"
+          }
+        },
+        "stale_after_seconds": {
+          "type": "integer"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      }
+    },
+    "marketdata.VenueQuote": {
+      "type": "object",
+      "properties": {
+        "ask": {
+          "type": "string"
+        },
+        "bid": {
+          "type": "string"
+        },
+        "high": {
+          "type": "string"
+        },
+        "last": {
+          "type": "string"
+        },
+        "low": {
+          "type": "string"
+        },
+        "median": {
+          "description": "Median is the median of the fresh prices of the same quote, when\nenough venues have one.",
+          "type": "string"
+        },
+        "observed_at": {
+          "type": "string"
+        },
+        "open": {
+          "type": "string"
+        },
+        "outlier": {
+          "description": "Outlier: the price is too far from the median of the venues.",
+          "type": "boolean"
+        },
+        "pair": {
+          "type": "string"
+        },
+        "quote": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "stale": {
+          "description": "Stale: the ticker is older than the staleness limit.",
+          "type": "boolean"
+        },
+        "venue": {
+          "type": "string"
+        },
+        "venue_name": {
+          "type": "string"
+        },
+        "volume_base": {
+          "type": "string"
+        },
+        "volume_quote": {
+          "type": "string"
+        }
+      }
+    },
+    "models.APIResponse": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "description": "Code names the error of a response of status 400 or more, for\nclients to act on; Message is for people and may change.",
+          "type": "string"
+        },
+        "info": {
+          "description": "Info can hold any type of data (e.g., list or object)"
+        },
+        "message": {
+          "type": "string"
+        },
+        "request_id": {
+          "description": "RequestID is the X-Request-ID of an error response, to quote when\nreporting it.",
+          "type": "string"
+        },
+        "status": {
+          "type": "integer"
+        }
+      }
+    },
+    "models.Currency": {
+      "type": "object",
+      "properties": {
+        "created_at": {
+          "type": "string"
+        },
+        "deleted_at": {
+          "type": "string"
+        },
+        "hk": {
+          "type": "string"
+        },
+        "id": {
+          "type": "integer"
+        },
+        "info": {
+          "$ref": "#/definitions/models.CurrencyInfo"
+        },
+        "lifecycle": {
+          "description": "Lifecycle is where the currency is in a delisting, and what users may\ndo with it now (#216).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/models.CurrencyLifecycle"
+            }
+          ]
+        },
+        "migration": {
+          "description": "Migration is the migration that moves the holders of this currency to\nanother one, from its announcement on (#215).",
+          "allOf": [
+            {
+              "$ref": "#/definitions/models.CurrencyMigration"
+            }
+          ]
+        },
+        "previous_symbols": {
+          "description": "PreviousSymbols are the symbols the currency had before a rebrand,\nnewest first (#215). They stay reserved for it, and the lists find the\ncurrency by them.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "MATIC"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "version": {
+          "description": "Version counts the changes of the currency. Only administrators see\nit; it is 0, and left out, in public responses.",
+          "type": "integer"
+        }
+      }
+    },
+    "models.CurrencyCapabilities": {
+      "type": "object",
+      "properties": {
+        "buy": {
+          "type": "boolean"
+        },
+        "convert_from": {
+          "type": "boolean"
+        },
+        "convert_into": {
+          "type": "boolean"
+        },
+        "deposit": {
+          "type": "boolean"
+        },
+        "listed": {
+          "description": "Listed is false when the currency is left out of the public lists. It\ncan still be read by its hk, for history.",
+          "type": "boolean"
+        },
+        "sell": {
+          "type": "boolean"
+        },
+        "withdraw": {
+          "type": "boolean"
+        }
+      }
+    },
+    "models.CurrencyInfo": {
+      "type": "object",
+      "properties": {
+        "contract": {
+          "type": "string"
+        },
+        "en_name": {
+          "type": "string"
+        },
+        "fa_name": {
+          "type": "string"
+        },
+        "if_fiat": {
+          "type": "boolean"
+        },
+        "is_token": {
+          "type": "boolean"
+        },
+        "logo_url": {
+          "description": "LogoURL is the https URL of the currency's logo (#215), or empty.",
+          "type": "string",
+          "example": "https://example.com/logos/usdt.svg"
+        },
+        "symbol": {
+          "type": "string"
+        }
+      }
+    },
+    "models.CurrencyLifecycle": {
+      "type": "object",
+      "properties": {
+        "capabilities": {
+          "description": "Capabilities says what users may do with the currency now: the\ncapabilities of the state, with the overrides of administrators.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/models.CurrencyCapabilities"
+            }
+          ]
+        },
+        "next": {
+          "description": "Next is the next scheduled step, when a delisting is under way.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/models.CurrencyLifecycleStep"
+            }
+          ]
+        },
+        "state": {
+          "description": "State is active, or the step of a delisting that the currency is at.",
+          "type": "string",
+          "enum": [
+            "active",
+            "delist_announced",
+            "deposits_disabled",
+            "sell_only",
+            "trading_halted",
+            "withdrawal_only",
+            "frozen",
+            "delisted"
+          ],
+          "example": "active"
+        }
+      }
+    },
+    "models.CurrencyLifecycleStep": {
+      "type": "object",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string",
+          "example": "deposits_disabled"
+        }
+      }
+    },
+    "models.CurrencyMigration": {
+      "type": "object",
+      "properties": {
+        "forced": {
+          "description": "Forced is true when holdings are converted, and false when the\nconversion is offered and the currency stays.",
+          "type": "boolean"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "next": {
+          "description": "Next is the next scheduled phase.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/models.CurrencyMigrationPhase"
+            }
+          ]
+        },
+        "phase": {
+          "description": "Phase is announced, deposits_paused, trading_halted, converting, or\ncompleted.",
+          "type": "string",
+          "enum": [
+            "announced",
+            "deposits_paused",
+            "trading_halted",
+            "converting",
+            "completed"
+          ],
+          "example": "announced"
+        },
+        "ratio": {
+          "description": "Ratio is the units of the target that one unit of this currency\nbecomes, as a decimal string.",
+          "type": "string",
+          "example": "1"
+        },
+        "target_hk": {
+          "type": "string",
+          "format": "uuid"
+        }
+      }
+    },
+    "models.CurrencyMigrationPhase": {
+      "type": "object",
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string",
+          "example": "deposits_paused"
+        }
+      }
+    },
+    "platform.Feature": {
+      "type": "string",
+      "enum": [
+        "sign_up",
+        "sign_in",
+        "profile_changes",
+        "deposits",
+        "withdrawals",
+        "trading",
+        "api_keys",
+        "websocket",
+        "read_only",
+        "scheduler",
+        "outbox",
+        "market_data",
+        "service",
+        "writes"
+      ],
+      "x-enum-varnames": [
+        "FeatureSignUp",
+        "FeatureSignIn",
+        "FeatureProfileChanges",
+        "FeatureDeposits",
+        "FeatureWithdrawals",
+        "FeatureTrading",
+        "FeatureAPIKeys",
+        "FeatureWebSocket",
+        "FeatureReadOnly",
+        "FeatureScheduler",
+        "FeatureOutbox",
+        "FeatureMarketData",
+        "UseService",
+        "UseWrites"
+      ]
+    },
+    "platform.Kind": {
+      "type": "string",
+      "enum": [
+        "maintenance",
+        "lockdown"
+      ],
+      "x-enum-varnames": [
+        "KindMaintenance",
+        "KindLockdown"
+      ]
+    },
+    "platform.Message": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "string"
+        },
+        "fa": {
+          "type": "string"
+        }
+      }
+    },
+    "platform.PublicControl": {
+      "type": "object",
+      "properties": {
+        "ends_at": {
+          "type": "string"
+        },
+        "feature": {
+          "enum": [
+            "sign_up",
+            "sign_in",
+            "profile_changes",
+            "deposits",
+            "withdrawals",
+            "trading",
+            "api_keys",
+            "websocket",
+            "read_only"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/platform.Feature"
+            }
+          ]
+        },
+        "kind": {
+          "enum": [
+            "maintenance",
+            "lockdown"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/definitions/platform.Kind"
+            }
+          ]
+        },
+        "message": {
+          "$ref": "#/definitions/platform.Message"
+        },
+        "starts_at": {
+          "type": "string"
+        }
+      }
+    },
+    "platform.Status": {
+      "type": "object",
+      "properties": {
+        "active": {
+          "description": "Active and Scheduled are the controls that apply now, and those that\nare announced and start later, by start.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/platform.PublicControl"
+          }
+        },
+        "lockdowns": {
+          "description": "Lockdowns are the features that are closed now.",
+          "type": "array",
+          "items": {
+            "enum": [
+              "sign_up",
+              "sign_in",
+              "profile_changes",
+              "deposits",
+              "withdrawals",
+              "trading",
+              "api_keys",
+              "websocket",
+              "read_only"
+            ],
+            "$ref": "#/definitions/platform.Feature"
+          }
+        },
+        "mode": {
+          "description": "Mode is maintenance during a full maintenance, and open otherwise.",
+          "type": "string",
+          "enum": [
+            "open",
+            "maintenance"
+          ]
+        },
+        "scheduled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/platform.PublicControl"
+          }
+        }
+      }
+    },
+    "public.CurrencyPage": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/models.Currency"
+          }
+        },
+        "next_cursor": {
+          "description": "NextCursor asks for the next page. It is left out on the last page.",
+          "type": "string"
+        }
+      }
+    },
+    "public.LocalesInfo": {
+      "type": "object",
+      "properties": {
+        "current": {
+          "description": "Current is the locale of this request, for <html lang dir>.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/i18n.Locale"
+            }
+          ]
+        },
+        "default": {
+          "description": "Default is the code of the fallback locale.",
+          "type": "string",
+          "example": "en"
+        },
+        "locales": {
+          "description": "Locales are the supported locales, in the order of the language\nswitcher.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/i18n.Locale"
+          }
+        },
+        "source": {
+          "description": "Source is where the current locale came from: query, header, cookie,\naccept_language, site (the default of the site the request comes\nfrom), or default.",
+          "type": "string",
+          "enum": [
+            "query",
+            "header",
+            "cookie",
+            "accept_language",
+            "site",
+            "default"
+          ],
+          "example": "accept_language"
+        }
+      }
+    },
+    "public.SiteInfo": {
+      "type": "object",
+      "properties": {
+        "alternates": {
+          "description": "Alternates are the URLs of the page on every site and locale, for\nhreflang links.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sites.Alternate"
+          }
+        },
+        "country": {
+          "description": "Country of the visitor, \"\" when it is not known, and its source.",
+          "type": "string",
+          "example": "IR"
+        },
+        "country_source": {
+          "type": "string",
+          "enum": [
+            "header",
+            "database",
+            "override",
+            "none"
+          ],
+          "example": "database"
+        },
+        "current_site": {
+          "description": "CurrentSite is the ID of the site the visitor is on, or null.",
+          "type": "string",
+          "example": "global"
+        },
+        "locale": {
+          "description": "Locale is the locale to show on it, with its direction.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/i18n.Locale"
+            }
+          ]
+        },
+        "locale_source": {
+          "type": "string",
+          "enum": [
+            "query",
+            "header",
+            "cookie",
+            "accept_language",
+            "site",
+            "default"
+          ],
+          "example": "site"
+        },
+        "reason": {
+          "description": "Reason says why: enforced, choice, stay, crawler, country, or\ndefault.",
+          "type": "string",
+          "enum": [
+            "enforced",
+            "choice",
+            "stay",
+            "crawler",
+            "country",
+            "default"
+          ],
+          "example": "country"
+        },
+        "redirect": {
+          "description": "Redirect says whether to send the visitor to URL.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/public.SiteRedirect"
+            }
+          ]
+        },
+        "site": {
+          "description": "Site is the site the visitor belongs to, or null without sites.",
+          "allOf": [
+            {
+              "$ref": "#/definitions/sites.Site"
+            }
+          ]
+        },
+        "sites": {
+          "description": "Sites are every site, for a site switcher.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/sites.Site"
+          }
+        }
+      }
+    },
+    "public.SiteRedirect": {
+      "type": "object",
+      "properties": {
+        "needed": {
+          "type": "boolean"
+        },
+        "url": {
+          "type": "string",
+          "example": "https://example.ir/markets"
+        }
+      }
+    },
+    "sites.Alternate": {
+      "type": "object",
+      "properties": {
+        "hreflang": {
+          "type": "string",
+          "example": "fa-IR"
+        },
+        "locale": {
+          "type": "string",
+          "example": "fa"
+        },
+        "site": {
+          "type": "string",
+          "example": "ir"
+        },
+        "url": {
+          "type": "string",
+          "example": "https://example.ir/markets"
+        }
+      }
+    },
+    "sites.Site": {
+      "type": "object",
+      "properties": {
+        "countries": {
+          "description": "Countries are the ISO 3166-1 alpha-2 codes of the countries it\nserves; empty for a site that serves the rest of the world.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "default_locale": {
+          "description": "DefaultLocale is the first of Locales.",
+          "type": "string",
+          "example": "fa"
+        },
+        "domain": {
+          "description": "Domain is its canonical host, such as \"example.ir\".",
+          "type": "string",
+          "example": "example.ir"
+        },
+        "enforce": {
+          "description": "Enforce keeps the visitors of its countries on it, whatever they\nchose, for a legal requirement.",
+          "type": "boolean"
+        },
+        "id": {
+          "description": "ID names the site, such as \"global\" or \"ir\".",
+          "type": "string",
+          "example": "ir"
+        },
+        "locales": {
+          "description": "Locales are the codes of its locales; the first is its default.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "example": [
+            "fa",
+            "en"
+          ]
+        },
+        "url": {
+          "description": "URL is the origin of the site, such as \"https://example.ir\".",
+          "type": "string",
+          "example": "https://example.ir"
+        }
+      }
+    }
+  }
+}

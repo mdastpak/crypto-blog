@@ -1,0 +1,23 @@
+{
+  "status": 200,
+  "message": "OK",
+  "info": {
+    "slug": "bitcoin",
+    "symbol": "BTC",
+    "name": "Bitcoin",
+    "kind": "coin",
+    "description": "The first decentralized cryptocurrency.",
+    "logo_url": "https://assets.example.com/btc.png",
+    "links": { "homepage": "https://bitcoin.org" },
+    "market_cap_rank": 1,
+    "circulating_supply": "19780000",
+    "max_supply": "21000000",
+    "contracts": [],
+    "attribution": "Data provided by CoinGecko",
+    "verified": false,
+    "label": "unverified",
+    "active": true,
+    "updated_at": "2026-11-09T10:00:00Z",
+    "some_future_field": "ignored"
+  }
+}
