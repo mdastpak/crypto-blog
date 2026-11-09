@@ -33,6 +33,61 @@ In an `international` release, Iranian venues and IRT/IRR quotes are hidden from
 
 Waits on the backend's sort by first-seen time (Crypto-Exchange [#304](https://github.com/mdastpak/Crypto-Exchange/issues/304)); tracked in [#20](https://github.com/mdastpak/crypto-blog/issues/20).
 
+## Editorial content
+
+The work of [#8](https://github.com/mdastpak/crypto-blog/issues/8). Articles and campaigns come from the CMS ([cms.md](cms.md)) over its REST API, `CMS_API_URL`. Without it the release has no blog or campaign pages (404) and no links to them.
+
+### The blog: `/{locale}/blog`
+
+- Articles newest first, 12 a page (`?page=`), with a filter by type (`?type=article|guide|analysis|news`). Each card: cover, type, date, title, excerpt, author.
+- Filtered and later pages are `noindex, follow`.
+- `/{locale}/blog/categories/{slug}`, `/{locale}/blog/tags/{slug}`, and `/{locale}/blog/authors/{slug}` list the articles of a category, a tag, or an author.
+- Rendered per request (they depend on the query); the CMS answers they read are cached.
+
+### An article: `/{locale}/blog/{slug}`
+
+- Type, date, title, excerpt, author, cover, the body, its sources (links `nofollow`), categories and tags.
+- **Coins in this article**: live cards of the coins it is about (catalog slugs, at most 6), with the price as of the page's last refresh. A coin the catalog does not know is left out.
+- `hreflang` links to each served locale the article is translated into, and a canonical link.
+- Rendered on its first request, then cached; publishing revalidates it at once, and it refreshes at most every 5 minutes anyway.
+
+### Campaigns: `/{locale}/campaigns`, `/{locale}/campaigns/{slug}`
+
+- Each campaign shows **Upcoming**, **Running**, or **Ended**, and its dates. An ended campaign stays readable, with a note and without its call to action, so its terms stay on record.
+- The call to action is a link (https or a path of the site); terms are shown in their own box.
+- A campaign page refreshes at most every minute, so its state is at most a minute old.
+
+### Related articles on coin pages
+
+A coin page lists the three latest articles about the coin. If the CMS cannot answer, the section is left out; the coin page never fails because of it.
+
+### Translations
+
+The CMS returns every translation of a document (`locale=all`), so one cached answer serves every language, and the blog applies these rules (`lib/cms/localize.ts`):
+
+- A **list** shows only documents whose title is translated into the page's language, so a list never mixes languages.
+- A **document** not translated into the page's language is shown in the first served language it has. It is marked with its language and direction (`lang`, `dir`), carries a note, is `noindex`, and its canonical link points to the original.
+- Within a translated document, a **field** not translated yet (often the body, while a translator works) falls back the same way, field by field, marked and noted.
+- Only languages the release serves are fallbacks: an English-only international release never shows Persian text.
+- The blog's own labels (dates, "By", headings) stay in the page's language.
+
+### Where a document appears
+
+A document limited to some regions or sites appears only there. The region is `DEPLOYMENT_REGION`; the site is `SITE_ID`, the country site this deployment serves. Without `SITE_ID`, site limits are not applied, so a deployment that serves several country sites with different content runs as one deployment per site.
+
+### Rich text
+
+The body is rendered from the CMS's Lexical JSON into plain elements: paragraphs, headings (from `h2`, below the title), lists, quotes, links, images, rules, and text formats. There is no raw HTML, so the CMS cannot inject markup or script, and links keep to http(s), mailto, and paths of this site; external links are `nofollow`.
+
+### Media
+
+The CMS is internal, so images reach visitors through `/cms-media/{file}` on this app, which passes only plain file names and image types and lets browsers and CDNs cache them for a day. With `CMS_MEDIA_URL` set (a CDN in front of the media bucket), pages link there instead.
+
+### Publishing and preview
+
+- `POST /api/revalidate` takes the CMS's signed publish webhook and expires the tags it names (`cms:*` only) at once ([cms.md](cms.md#publishing-and-the-blogs-cache)). Off without `REVALIDATE_SECRET`.
+- `GET /api/preview` opens a draft from the admin panel's **Preview** link. The link is signed with `REVALIDATE_SECRET` for one document and locale and expires after an hour. It turns on draft mode (a cookie of that browser only); pages then read the latest draft with `CMS_PREVIEW_API_KEY`, are never cached, are `noindex`, and show a banner with **Exit preview** (`/api/preview/exit`).
+
 ## Errors
 
 A page that fails to render, with nothing cached, shows a localized error with a **Try again** button. Unknown paths show the localized 404.

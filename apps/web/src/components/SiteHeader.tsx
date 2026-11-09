@@ -9,9 +9,11 @@ export interface SiteHeaderProps {
   locale: Locale;
   locales: readonly Locale[];
   brand: Brand;
+  /** Links to the blog and campaigns, when the release has a CMS. */
+  editorial?: boolean;
 }
 
-export function SiteHeader({ locale, locales, brand }: SiteHeaderProps) {
+export function SiteHeader({ locale, locales, brand, editorial }: SiteHeaderProps) {
   const t = createTranslator(locale);
   return (
     <header className="border-b border-border bg-surface">
@@ -24,9 +26,27 @@ export function SiteHeader({ locale, locales, brand }: SiteHeaderProps) {
           <span>{brand.name[locale]}</span>
         </Link>
         <nav aria-label={t("SITE_NAME")} className="me-auto ms-6 hidden text-sm sm:block">
-          <Link href={`/${locale}/coins`} className="text-muted hover:text-text">
-            {t("NAV_COINS")}
-          </Link>
+          <ul className="flex gap-4">
+            <li>
+              <Link href={`/${locale}/coins`} className="text-muted hover:text-text">
+                {t("NAV_COINS")}
+              </Link>
+            </li>
+            {editorial && (
+              <>
+                <li>
+                  <Link href={`/${locale}/blog`} className="text-muted hover:text-text">
+                    {t("NAV_BLOG")}
+                  </Link>
+                </li>
+                <li>
+                  <Link href={`/${locale}/campaigns`} className="text-muted hover:text-text">
+                    {t("NAV_CAMPAIGNS")}
+                  </Link>
+                </li>
+              </>
+            )}
+          </ul>
         </nav>
         <div className="flex items-center gap-4">
           {locales.length > 1 && (

@@ -3,7 +3,7 @@ import { hasRole, isAdmin, isAdminField, ROLES } from "../access/roles";
 
 export const Users: CollectionConfig = {
   slug: "users",
-  auth: { maxLoginAttempts: 5, lockTime: 15 * 60 * 1000, useAPIKey: false },
+  auth: { maxLoginAttempts: 5, lockTime: 15 * 60 * 1000, useAPIKey: true },
   admin: { useAsTitle: "email", group: "Settings" },
   access: {
     // Staff see each other's names; only admins manage accounts.

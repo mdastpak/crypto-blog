@@ -68,6 +68,20 @@ const schema = z.object({
     .string()
     .optional()
     .transform((value) => value?.trim().toLowerCase()),
+  CMS_API_URL: baseUrl.optional(),
+  CMS_MEDIA_URL: baseUrl.optional(),
+  REVALIDATE_SECRET: z.string().min(32, "must be at least 32 characters").optional(),
+  CMS_PREVIEW_API_KEY: z.string().min(16, "must be at least 16 characters").optional(),
+  SITE_ID: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim().toLowerCase())
+    .pipe(
+      z
+        .string()
+        .regex(/^[a-z0-9-]{1,32}$/, "must be a site id such as ir or global")
+        .optional(),
+    ),
 });
 
 export interface Config {
@@ -92,6 +106,16 @@ export interface Config {
   brand: string;
   /** Serves the component gallery at /{locale}/design; off in production. */
   designGallery: boolean;
+  /** The CMS's REST API (`…/api`); without it the blog has no editorial pages. */
+  cmsApiUrl?: string;
+  /** A public base URL of CMS media (a CDN); unset, media is proxied by this app. */
+  cmsMediaUrl?: string;
+  /** Shared with the CMS: signs revalidation calls and preview links. */
+  revalidateSecret?: string;
+  /** The API key of a CMS viewer account, to read drafts in preview. */
+  cmsPreviewApiKey?: string;
+  /** The country site this deployment serves; content limited to other sites is hidden. */
+  siteId?: string;
 }
 
 /** Thrown when the environment does not describe a valid configuration. */
@@ -152,6 +176,11 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     trustProxyHeaders: c.TRUST_PROXY_HEADERS,
     brand: c.BRAND,
     designGallery: c.DESIGN_GALLERY,
+    cmsApiUrl: c.CMS_API_URL,
+    cmsMediaUrl: c.CMS_MEDIA_URL,
+    revalidateSecret: c.REVALIDATE_SECRET,
+    cmsPreviewApiKey: c.CMS_PREVIEW_API_KEY,
+    siteId: c.SITE_ID,
   };
 }
 

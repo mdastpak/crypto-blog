@@ -1,7 +1,7 @@
 import type { Field } from "payload";
 
 /** A URL-safe, unique slug shared by every locale of the document. */
-export const slugField = (): Field => ({
+export const slugField = (reserved: readonly string[] = []): Field => ({
   name: "slug",
   type: "text",
   required: true,
@@ -11,10 +11,16 @@ export const slugField = (): Field => ({
     position: "sidebar",
     description: "Lowercase letters, digits, and dashes; used in the URL.",
   },
-  validate: (value: unknown) =>
-    typeof value === "string" && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(value) && value.length <= 120
-      ? true
-      : "Use lowercase letters, digits, and single dashes (at most 120 characters).",
+  validate: (value: unknown) => {
+    if (
+      typeof value !== "string" ||
+      !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(value) ||
+      value.length > 120
+    ) {
+      return "Use lowercase letters, digits, and single dashes (at most 120 characters).";
+    }
+    return reserved.includes(value) ? `"${value}" is taken by a page of the blog.` : true;
+  },
 });
 
 /** The country sites a document appears on; none means every site. */

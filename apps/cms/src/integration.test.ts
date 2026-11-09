@@ -28,7 +28,7 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
     payload = await getPayload({ config });
     await payload.db.drizzle.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;" as never);
     await payload.db.migrate({ migrations: migrations as never });
-    for (const role of ["admin", "editor", "reviewer", "author"]) {
+    for (const role of ["admin", "editor", "reviewer", "author", "viewer"]) {
       const doc = await payload.create({
         collection: "users",
         data: {
@@ -148,6 +148,40 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
         collection: "categories",
         data: { name: "x", slug: "Not A Slug" },
         ...asUser("editor"),
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("keeps the blog's own paths out of article slugs", async () => {
+    await expect(
+      payload.create({
+        collection: "articles",
+        data: { title: "x", slug: "categories", type: "article" },
+        ...asUser("editor"),
+      }),
+    ).rejects.toMatchObject({ data: { errors: [{ path: "slug" }] } });
+  });
+
+  it("a viewer reads drafts but cannot write", async () => {
+    const draft = await payload.create({
+      collection: "articles",
+      data: { title: "Draft for viewer", slug: "viewer-draft", type: "article" },
+      draft: true,
+      ...asUser("editor"),
+    });
+    const read = await payload.findByID({
+      collection: "articles",
+      id: draft.id,
+      draft: true,
+      ...asUser("viewer"),
+    });
+    expect(read.title).toBe("Draft for viewer");
+    await expect(
+      payload.update({
+        collection: "articles",
+        id: draft.id,
+        data: { title: "changed" },
+        ...asUser("viewer"),
       }),
     ).rejects.toThrow();
   });

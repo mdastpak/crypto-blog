@@ -1,0 +1,89 @@
+{
+  "docs": [
+    {
+      "id": 1,
+      "title": {
+        "fa": "کمپین خوش‌آمدگویی",
+        "en": "Welcome campaign"
+      },
+      "slug": "welcome-campaign",
+      "summary": {
+        "fa": "برای کاربران جدید.",
+        "en": "For new users."
+      },
+      "cover": null,
+      "body": {
+        "fa": {
+          "root": {
+            "type": "root",
+            "format": "",
+            "indent": 0,
+            "version": 1,
+            "children": [
+              {
+                "type": "paragraph",
+                "format": "",
+                "indent": 0,
+                "version": 1,
+                "children": [
+                  {
+                    "mode": "normal",
+                    "text": "جزئیات کمپین خوش‌آمدگویی.",
+                    "type": "text",
+                    "style": "",
+                    "detail": 0,
+                    "format": 0,
+                    "version": 1
+                  }
+                ],
+                "direction": "rtl",
+                "textFormat": 0
+              }
+            ],
+            "direction": "rtl"
+          }
+        },
+        "en": null
+      },
+      "startsAt": "2026-11-09T11:26:03.423Z",
+      "endsAt": "2026-12-09T11:26:03.424Z",
+      "cta": {
+        "label": {
+          "fa": "شروع کنید",
+          "en": "Get started"
+        },
+        "url": "/"
+      },
+      "terms": {
+        "fa": null,
+        "en": null
+      },
+      "coins": [],
+      "sites": [],
+      "regions": [],
+      "seo": {
+        "title": {
+          "fa": null,
+          "en": null
+        },
+        "description": {
+          "fa": null,
+          "en": null
+        }
+      },
+      "createdBy": null,
+      "updatedAt": "2026-11-09T11:26:03.473Z",
+      "createdAt": "2026-11-09T11:26:03.432Z",
+      "_status": "published"
+    }
+  ],
+  "hasNextPage": false,
+  "hasPrevPage": false,
+  "limit": 1,
+  "nextPage": null,
+  "page": 1,
+  "pagingCounter": 1,
+  "prevPage": null,
+  "totalDocs": 1,
+  "totalPages": 1
+}

@@ -144,3 +144,31 @@ describe("parseConfig", () => {
     expect(() => parseConfig({})).toThrow(/BACKEND_API_URL is required/);
   });
 });
+
+describe("cms", () => {
+  it("is off without CMS_API_URL", () => {
+    expect(parseConfig(valid).cmsApiUrl).toBeUndefined();
+  });
+
+  it("reads the CMS settings", () => {
+    const config = parseConfig({
+      ...valid,
+      CMS_API_URL: "http://cms:3001/api/",
+      REVALIDATE_SECRET: "s".repeat(32),
+      CMS_PREVIEW_API_KEY: "k".repeat(36),
+      SITE_ID: " IR ",
+    });
+    expect(config).toMatchObject({
+      cmsApiUrl: "http://cms:3001/api",
+      revalidateSecret: "s".repeat(32),
+      siteId: "ir",
+    });
+  });
+
+  it("refuses a short secret and a bad site id", () => {
+    expect(problems({ ...valid, REVALIDATE_SECRET: "short", SITE_ID: "a/b" })).toEqual([
+      "REVALIDATE_SECRET must be at least 32 characters",
+      "SITE_ID must be a site id such as ir or global",
+    ]);
+  });
+});

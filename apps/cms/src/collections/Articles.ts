@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isEditor, isWriter, ownOrEditor, publishedOrStaff } from "../access/roles";
 import { createdByField, regionsField, seoField, sitesField, slugField } from "../fields";
+import { preview } from "../hooks/preview";
 import { revalidateAfterChange, revalidateAfterDelete } from "../hooks/revalidate";
 import { publishGuard } from "./publishGuard";
 
@@ -10,6 +11,7 @@ export const Articles: CollectionConfig = {
   slug: "articles",
   admin: {
     useAsTitle: "title",
+    preview: preview("articles"),
     group: "Content",
     defaultColumns: ["title", "type", "_status", "publishedAt", "updatedAt"],
   },
@@ -22,7 +24,8 @@ export const Articles: CollectionConfig = {
   },
   fields: [
     { name: "title", type: "text", required: true, localized: true },
-    slugField(),
+    // Paths under /blog that are not articles.
+    slugField(["categories", "tags", "authors"]),
     {
       name: "type",
       type: "select",

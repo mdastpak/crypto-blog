@@ -1,0 +1,112 @@
+{
+  "docs": [
+    {
+      "id": 2,
+      "title": {
+        "fa": "مرور هفتگی بازار",
+        "en": "Weekly market review"
+      },
+      "slug": "weekly-market-review",
+      "type": "analysis",
+      "excerpt": {
+        "fa": "نگاهی به حرکت بیت‌کوین و اتریوم در هفته گذشته.",
+        "en": "A look at Bitcoin and Ethereum over the past week."
+      },
+      "cover": null,
+      "body": {
+        "fa": {
+          "root": {
+            "type": "root",
+            "format": "",
+            "indent": 0,
+            "version": 1,
+            "children": [
+              {
+                "type": "paragraph",
+                "format": "",
+                "indent": 0,
+                "version": 1,
+                "children": [
+                  {
+                    "mode": "normal",
+                    "text": "بیت‌کوین و اتریوم این هفته در محدوده‌ای باریک نوسان کردند.",
+                    "type": "text",
+                    "style": "",
+                    "detail": 0,
+                    "format": 0,
+                    "version": 1
+                  }
+                ],
+                "direction": "rtl",
+                "textFormat": 0
+              }
+            ],
+            "direction": "rtl"
+          }
+        },
+        "en": null
+      },
+      "coins": ["bitcoin", "ethereum"],
+      "sources": [],
+      "author": {
+        "id": 1,
+        "name": {
+          "fa": "تحریریه",
+          "en": "Newsroom"
+        },
+        "slug": "newsroom",
+        "bio": {
+          "fa": "تیم تحریریه کریپتو بلاگ.",
+          "en": "The Crypto Blog editorial team."
+        },
+        "avatar": null,
+        "user": null,
+        "updatedAt": "2026-11-09T11:26:03.249Z",
+        "createdAt": "2026-11-09T11:26:03.222Z"
+      },
+      "categories": [
+        {
+          "id": 2,
+          "name": {
+            "fa": "تحلیل بازار",
+            "en": "Market analysis"
+          },
+          "slug": "market",
+          "description": {
+            "fa": null,
+            "en": null
+          },
+          "updatedAt": "2026-11-09T11:26:03.299Z",
+          "createdAt": "2026-11-09T11:26:03.289Z"
+        }
+      ],
+      "tags": [],
+      "publishedAt": "2026-11-09T11:26:03.373Z",
+      "sites": [],
+      "regions": [],
+      "seo": {
+        "title": {
+          "fa": null,
+          "en": null
+        },
+        "description": {
+          "fa": null,
+          "en": null
+        }
+      },
+      "createdBy": null,
+      "updatedAt": "2026-11-09T11:26:03.395Z",
+      "createdAt": "2026-11-09T11:26:03.373Z",
+      "_status": "published"
+    }
+  ],
+  "hasNextPage": false,
+  "hasPrevPage": false,
+  "limit": 1,
+  "nextPage": null,
+  "page": 1,
+  "pagingCounter": 1,
+  "prevPage": null,
+  "totalDocs": 1,
+  "totalPages": 1
+}

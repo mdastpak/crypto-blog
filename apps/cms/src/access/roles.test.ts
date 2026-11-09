@@ -9,6 +9,7 @@ describe("roles", () => {
     ["editor", true, true],
     ["reviewer", true, false],
     ["author", false, true],
+    ["viewer", false, false],
   ])("%s: publish %s, write %s", (role, publish, write) => {
     expect(canPublish(user(role))).toBe(publish);
     expect(canWrite(user(role))).toBe(write);

@@ -11,6 +11,38 @@ export function sign(body: string, secret: string, now = Date.now()): string {
   return `t=${t},v1=${v1}`;
 }
 
+/** How long a preview link works, in seconds. */
+export const PREVIEW_LINK_SECONDS = 3600;
+
+export interface PreviewTarget {
+  collection: string;
+  slug: string;
+  locale: string;
+}
+
+/** The message a preview link signs; the web app builds the same string. */
+export function previewMessage(target: PreviewTarget, exp: number): string {
+  return `preview.${target.collection}.${target.slug}.${target.locale}.${exp}`;
+}
+
+/**
+ * A link that turns on the blog's draft mode for one document. It is signed
+ * and expires, so only someone who opened it from the admin panel recently
+ * can preview, and it reveals nothing else.
+ */
+export function previewUrl(
+  webUrl: string,
+  target: PreviewTarget,
+  secret: string,
+  now = Date.now(),
+): string {
+  const exp = Math.floor(now / 1000) + PREVIEW_LINK_SECONDS;
+  const sig = createHmac("sha256", secret).update(previewMessage(target, exp)).digest("hex");
+  const url = new URL("/api/preview", webUrl);
+  url.search = new URLSearchParams({ ...target, exp: String(exp), sig }).toString();
+  return url.toString();
+}
+
 export function verify(
   body: string,
   header: string | null,

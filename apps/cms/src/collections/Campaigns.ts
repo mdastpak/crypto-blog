@@ -1,6 +1,7 @@
 import type { CollectionConfig } from "payload";
 import { isEditor, isWriter, ownOrEditor, publishedOrStaff } from "../access/roles";
 import { createdByField, regionsField, seoField, sitesField, slugField } from "../fields";
+import { preview } from "../hooks/preview";
 import { revalidateAfterChange, revalidateAfterDelete } from "../hooks/revalidate";
 import { publishGuard } from "./publishGuard";
 
@@ -8,6 +9,7 @@ export const Campaigns: CollectionConfig = {
   slug: "campaigns",
   admin: {
     useAsTitle: "title",
+    preview: preview("campaigns"),
     group: "Content",
     defaultColumns: ["title", "startsAt", "endsAt", "_status"],
   },
