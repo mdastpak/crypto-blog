@@ -1,5 +1,5 @@
 import type { CollectionConfig } from "payload";
-import { isEditor, isWriter, ownOrEditor, publishedOrStaff } from "../access/roles";
+import { isBotField, isEditor, isWriter, ownOrEditor, publishedOrStaff } from "../access/roles";
 import { createdByField, regionsField, seoField, sitesField, slugField } from "../fields";
 import { preview } from "../hooks/preview";
 import { revalidateAfterChange, revalidateAfterDelete } from "../hooks/revalidate";
@@ -52,6 +52,36 @@ export const Articles: CollectionConfig = {
       fields: [
         { name: "name", type: "text", required: true },
         { name: "url", type: "text", required: true },
+        // The source's own headline, in its language; news drafts fill it.
+        { name: "title", type: "text" },
+      ],
+    },
+    {
+      name: "corrections",
+      type: "array",
+      admin: {
+        description:
+          "Updates and corrections after publishing, newest last; shown on the page with their time.",
+      },
+      fields: [
+        {
+          name: "at",
+          type: "date",
+          required: true,
+          defaultValue: () => new Date(),
+          admin: { date: { pickerAppearance: "dayAndTime" } },
+        },
+        {
+          name: "kind",
+          type: "select",
+          required: true,
+          defaultValue: "update",
+          options: [
+            { label: "Update", value: "update" },
+            { label: "Correction", value: "correction" },
+          ],
+        },
+        { name: "note", type: "textarea", required: true, localized: true, maxLength: 500 },
       ],
     },
     { name: "author", type: "relationship", relationTo: "authors", admin: { position: "sidebar" } },
@@ -80,6 +110,40 @@ export const Articles: CollectionConfig = {
           ({ siblingData, value }) =>
             siblingData._status === "published" && !value ? new Date() : value,
         ],
+      },
+    },
+    // Set by the news worker on the drafts it writes (docs/news.md).
+    {
+      name: "externalId",
+      type: "text",
+      unique: true,
+      index: true,
+      access: { create: isBotField, update: isBotField },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "The news worker's story this was drafted from.",
+      },
+    },
+    {
+      name: "generatedBy",
+      type: "text",
+      access: { create: isBotField, update: isBotField },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "The writer that drafted this; the page shows an editorial note.",
+      },
+    },
+    {
+      name: "autoPublished",
+      type: "checkbox",
+      defaultValue: false,
+      access: { create: isBotField, update: isBotField },
+      admin: {
+        position: "sidebar",
+        readOnly: true,
+        description: "Published by the news worker without review; labeled on the page.",
       },
     },
     sitesField(),

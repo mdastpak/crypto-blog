@@ -69,6 +69,29 @@ const articles = [
     publishedAt: "2026-11-06T10:00:00Z",
     _status: "published",
   },
+  {
+    // Drafted by the news worker and published by its policy, then corrected.
+    id: 4,
+    slug: "ether-upgrade-ships-4-abc",
+    type: "news",
+    title: { fa: null, en: "Ether upgrade ships" },
+    excerpt: { en: "2 sources report this story, including Wire and Daily." },
+    body: { en: lexical("This story was first reported on November 5, 2026.") },
+    coins: [],
+    sources: [
+      { name: "Wire", url: "https://wire.example/eth", title: "Ethereum upgrade goes live" },
+      { name: "Daily", url: "https://daily.example/eth" },
+    ],
+    corrections: [
+      { at: "2026-11-05T12:00:00Z", kind: "correction", note: { en: "Fixed the block number." } },
+    ],
+    generatedBy: "template",
+    autoPublished: true,
+    categories: [],
+    tags: [],
+    publishedAt: "2026-11-05T10:00:00Z",
+    _status: "published",
+  },
 ];
 
 const drafts = {

@@ -36,8 +36,11 @@ pnpm dev:cms                              # http://localhost:3001/admin
 | `editor`   | everything          | yes       | yes     | no            |
 | `reviewer` | (only to publish)   | yes       | no      | no            |
 | `author`   | their own documents | no        | no      | no            |
+| `newsbot`  | its own news        | labeled   | no      | no            |
 
 The `viewer` role is for the blog's preview: create one account with it, turn on its API key, and give the key to the web app as `CMS_PREVIEW_API_KEY`. A leaked key reads drafts but cannot change anything. Article slugs `categories`, `tags`, and `authors` are taken by blog pages and refused.
+
+The `newsbot` role is the news worker's ([news.md](news.md#editorial-workflow)): create one account with it, turn on its API key, and give the key to the worker as `CMS_API_KEY` (the seed creates one for development). It writes only `news` articles, edits only its own, and publishes only an article it labels `autoPublished`; only it and admins set `externalId`, `generatedBy`, and `autoPublished`. Articles also keep `corrections` (time, update or correction, a localized note), shown on the page.
 
 An author's attempt to publish is refused with `403`, so their work waits for review. Only admins change roles, so nobody raises their own. Visitors (no sign-in) read only published documents. Sign-in locks an account for 15 minutes after 5 failures.
 

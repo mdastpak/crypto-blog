@@ -4,7 +4,8 @@
  *   pnpm --filter cms seed
  *
  * It creates an admin (admin@example.com / SEED_ADMIN_PASSWORD or
- * "change-me-please"), an author, categories, two published articles, a
+ * "change-me-please"), the news worker's account (newsbot@example.com, with
+ * the API key SEED_NEWSBOT_API_KEY or "dev-newsbot-api-key-0123456789"), an author, categories, two published articles, a
  * draft, and a running campaign. It refuses to run in production and skips
  * what already exists, so it can run twice.
  */
@@ -45,6 +46,18 @@ const admin = await upsert(
     password: process.env.SEED_ADMIN_PASSWORD ?? "change-me-please",
     name: "Admin",
     roles: ["admin"],
+  },
+);
+await upsert(
+  "users",
+  { email: { equals: "newsbot@example.com" } },
+  {
+    email: "newsbot@example.com",
+    password: `${crypto.randomUUID()}-${crypto.randomUUID()}`,
+    name: "News worker",
+    roles: ["newsbot"],
+    enableAPIKey: true,
+    apiKey: process.env.SEED_NEWSBOT_API_KEY ?? "dev-newsbot-api-key-0123456789",
   },
 );
 const author = await upsert(

@@ -76,7 +76,7 @@ Articles and campaigns live in a Payload CMS in `apps/cms`; see [docs/cms.md](do
 
 ## News worker
 
-`apps/news-worker` collects crypto news from RSS and Atom feeds into a store of stories for editors and news drafting; see [docs/news.md](docs/news.md).
+`apps/news-worker` collects crypto news from RSS and Atom feeds into a store of stories, drafts news from them into the CMS for editors to review, and posts published news to Telegram and X; see [docs/news.md](docs/news.md).
 
 ## Contributing
 
