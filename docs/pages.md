@@ -33,6 +33,27 @@ In an `international` release, Iranian venues and IRT/IRR quotes are hidden from
 
 Waits on the backend's sort by first-seen time (Crypto-Exchange [#304](https://github.com/mdastpak/Crypto-Exchange/issues/304)); tracked in [#20](https://github.com/mdastpak/crypto-blog/issues/20).
 
+## Markets
+
+The work of [#6](https://github.com/mdastpak/crypto-blog/issues/6): the exchange's own markets, priced from the market data catalog. The backend has no public list of pairs or prices of its own, so a market is a listed currency (`GET /public/currencies`) against each quote of `MARKET_QUOTES` (default `USDT,IRT`) that the release may show; a fiat currency is only a quote. Its price comes from the catalog asset with the same symbol, the one linked to the exchange (verified) first.
+
+### All markets: `/{locale}/markets`
+
+- Each row: logo, pair, the currency's name in the page's language, the median price in the pair's quote, the median 24h change, and how many venues it is the median of. A currency with no catalog asset or no fresh price shows dashes; a backend outage shows a notice instead of the table.
+- One catalog lookup per currency (its venues price every quote of it), at most 8 at a time, each cached for 30 s.
+- Rendered on its first request, then refreshed in the background at most every minute.
+
+### A market: `/{locale}/markets/{base}-{quote}`
+
+- The path is lower case (`btc-usdt`); anything else, an unknown or fiat base, or a quote the release does not show (IRT abroad) answers 404.
+- Header: logo, pair, the currency's name, and a **Trade** button (`EXCHANGE_APP_URL/trade/{BASE}?quote={QUOTE}`) when `EXCHANGE_APP_URL` is set.
+- **Median price in the quote**: the median of the venues of that quote that are neither stale nor outliers, with the median 24h change, the number of venues, and the time of the latest.
+- **Prices on exchanges**: every venue of that quote the release may show, by volume, with its difference from the median and **Stale** / **Outlier** badges; a note says those are listed but not counted.
+- Links to the base's other markets and its coin page.
+- Rendered on its first request, then refreshed at most every 30 s.
+
+In an `international` release the IRT markets do not exist and Iranian venues are hidden, as on coin pages ([Region](#region)).
+
 ## Editorial content
 
 The work of [#8](https://github.com/mdastpak/crypto-blog/issues/8). Articles and campaigns come from the CMS ([cms.md](cms.md)) over its REST API, `CMS_API_URL`. Without it the release has no blog or campaign pages (404) and no links to them.

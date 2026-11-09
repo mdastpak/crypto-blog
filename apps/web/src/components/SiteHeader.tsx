@@ -32,6 +32,11 @@ export function SiteHeader({ locale, locales, brand, editorial }: SiteHeaderProp
                 {t("NAV_COINS")}
               </Link>
             </li>
+            <li>
+              <Link href={`/${locale}/markets`} className="text-muted hover:text-text">
+                {t("NAV_MARKETS")}
+              </Link>
+            </li>
             {editorial && (
               <>
                 <li>

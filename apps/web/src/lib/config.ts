@@ -68,6 +68,24 @@ const schema = z.object({
     .string()
     .optional()
     .transform((value) => value?.trim().toLowerCase()),
+  // The quotes the exchange lists every currency against; a release drops
+  // those it may not show (IRT abroad).
+  MARKET_QUOTES: z
+    .string()
+    .default("USDT,IRT")
+    .transform((value) => [
+      ...new Set(
+        value
+          .split(",")
+          .map((q) => q.trim().toUpperCase())
+          .filter(Boolean),
+      ),
+    ])
+    .pipe(
+      z
+        .array(z.string().regex(/^[A-Z0-9]{2,10}$/, "must list symbols such as USDT,IRT"))
+        .min(1, "must list at least one quote"),
+    ),
   CMS_API_URL: baseUrl.optional(),
   CMS_MEDIA_URL: baseUrl.optional(),
   REVALIDATE_SECRET: z.string().min(32, "must be at least 32 characters").optional(),
@@ -116,6 +134,8 @@ export interface Config {
   cmsPreviewApiKey?: string;
   /** The country site this deployment serves; content limited to other sites is hidden. */
   siteId?: string;
+  /** The quotes of the exchange's markets (MARKET_QUOTES), before the region's filter. */
+  marketQuotes: string[];
 }
 
 /** Thrown when the environment does not describe a valid configuration. */
@@ -181,6 +201,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     revalidateSecret: c.REVALIDATE_SECRET,
     cmsPreviewApiKey: c.CMS_PREVIEW_API_KEY,
     siteId: c.SITE_ID,
+    marketQuotes: c.MARKET_QUOTES,
   };
 }
 

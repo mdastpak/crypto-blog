@@ -47,6 +47,13 @@ const quote = (venue, last, extra = {}) => ({
   ...extra,
 });
 
+const currency = (symbol, en, fa) => ({
+  hk: `hk-${symbol.toLowerCase()}`,
+  status: "approved",
+  info: { symbol, en_name: en, fa_name: fa, is_token: false, if_fiat: false },
+  updated_at: now,
+});
+
 const routes = {
   "/api/v1/market-data/assets": () => ({ items: [bitcoin, ether] }),
   "/api/v1/market-data/assets/bitcoin": () => bitcoin,
@@ -57,8 +64,16 @@ const routes = {
     quotes: [
       quote("binance", "64000", { volume_quote: "9000000" }),
       quote("kraken", "64100"),
-      quote("nobitex", "6500000000", { region: "ir", quote: "IRT", pair: "BTCIRT" }),
+      quote("nobitex", "6500000000", {
+        region: "ir",
+        quote: "IRT",
+        pair: "BTCIRT",
+        open: "6400000000",
+        median: "6500000000",
+        volume_quote: "90000000000",
+      }),
       quote("tinyex", "90000", { outlier: true }),
+      quote("oldex", "61000", { stale: true, observed_at: "2026-11-09T08:00:00Z" }),
     ],
   }),
   "/api/v1/market-data/assets/ethereum/venues": () => ({
@@ -78,6 +93,19 @@ const routes = {
     }),
   }),
   "/api/v1/public/site": () => ({ redirect: { needed: false } }),
+  // The exchange's listed currencies; IRT is fiat, a quote only.
+  "/api/v1/public/currencies": (url) => {
+    const items = [
+      currency("BTC", "Bitcoin", "بیت‌کوین"),
+      currency("ETH", "Ethereum", "اتریوم"),
+      {
+        ...currency("IRT", "Toman", "تومان"),
+        info: { symbol: "IRT", en_name: "Toman", if_fiat: true },
+      },
+    ];
+    const symbols = url.searchParams.get("symbol")?.toUpperCase().split(",");
+    return { items: symbols ? items.filter((c) => symbols.includes(c.info.symbol)) : items };
+  },
 };
 
 createServer((req, res) => {
@@ -91,5 +119,5 @@ createServer((req, res) => {
     res.end(JSON.stringify({ status: 404, message: "Not found", code: "not_found" }));
     return;
   }
-  res.end(JSON.stringify({ status: 200, message: "OK", info: route() }));
+  res.end(JSON.stringify({ status: 200, message: "OK", info: route(url) }));
 }).listen(port, "127.0.0.1", () => console.log(`mock backend on ${port}`));
