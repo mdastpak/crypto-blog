@@ -1,10 +1,11 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { CoinLogo } from "@/components/coins/CoinLogo";
 import { VenueTable } from "@/components/coins/VenueTable";
-import { Breadcrumbs, ButtonLink, Card, PriceChange } from "@/components/ui";
+import { ButtonLink, Card, PriceChange } from "@/components/ui";
 import { formatDate, formatNumber, formatPrice } from "@/i18n/format";
 import { enabledLocale } from "@/i18n/server";
 import { createTranslator } from "@/i18n/translate";
@@ -12,6 +13,7 @@ import { getConfig } from "@/lib/config";
 import { listedCurrency, pricesFor } from "@/lib/market/load";
 import { currencyName, marketPath, marketQuotes, parseMarket } from "@/lib/market/markets";
 import { priceIn, visibleQuotes } from "@/lib/market/price";
+import { pageMetadata } from "@/lib/seo/metadata";
 
 type Params = Promise<{ locale: string; pair: string }>;
 
@@ -42,13 +44,15 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const market = locale && (await loadMarket(pair));
   if (!locale || !market) return {};
   const t = createTranslator(locale);
-  return {
+  return pageMetadata({
+    locale,
+    path: `markets/${marketPath(market.base, market.quote)}`,
     title: t("MARKET_TITLE", { base: market.base, quote: market.quote }),
     description: t("MARKET_DESCRIPTION", {
       name: currencyName(market.currency, locale),
       quote: market.quote,
     }),
-  };
+  });
 }
 
 export default async function MarketPage({ params }: { params: Params }) {
@@ -72,7 +76,8 @@ export default async function MarketPage({ params }: { params: Params }) {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-8 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/markets/${pair}`}
         label={t("BREADCRUMBS_LABEL")}
         items={[
           { label: t("HOME_LINK"), href: `/${locale}` },

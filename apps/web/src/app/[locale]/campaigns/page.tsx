@@ -1,9 +1,11 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import { pageHref, pageParam } from "@/components/cms/ArticleList";
 import { CampaignDates } from "@/components/cms/CampaignDates";
 import { editorialContext, maybeEditorialContext } from "@/components/cms/context";
-import { Breadcrumbs, Card, EmptyState, Pagination } from "@/components/ui";
+import { Card, EmptyState, Pagination } from "@/components/ui";
 import { listCampaigns, mediaUrl, text } from "@/lib/cms";
 
 type Params = Promise<{ locale: string }>;
@@ -21,11 +23,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const ctx = maybeEditorialContext((await params).locale);
   if (!ctx) return {};
-  return {
+  return pageMetadata({
+    locale: ctx.locale,
+    path: "campaigns",
     title: ctx.t("CAMPAIGNS_TITLE"),
     description: ctx.t("CAMPAIGNS_DESCRIPTION"),
-    robots: pageParam((await searchParams).page) > 1 ? { index: false, follow: true } : undefined,
-  };
+    noindex: pageParam((await searchParams).page) > 1,
+  });
 }
 
 export default async function CampaignsPage({
@@ -43,7 +47,8 @@ export default async function CampaignsPage({
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/campaigns`}
         label={t("BREADCRUMBS_LABEL")}
         items={[{ label: t("HOME_LINK"), href: `/${locale}` }, { label: t("CAMPAIGNS_TITLE") }]}
       />

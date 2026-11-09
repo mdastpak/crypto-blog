@@ -89,7 +89,8 @@ const articles = [
     autoPublished: true,
     categories: [],
     tags: [],
-    publishedAt: "2026-11-05T10:00:00Z",
+    // Recent, so it is in the news sitemap (the last two days).
+    publishedAt: new Date(Date.now() - 3600_000).toISOString(),
     _status: "published",
   },
 ];
@@ -173,6 +174,8 @@ export function handleCms(req, res, url) {
     .find(([k]) => /\[title\.\w+\]\[exists\]$/.test(k))?.[0]
     .match(/title\.(\w+)/)?.[1];
   const coin = value("[coins][contains]");
+  const type = value("[type][equals]");
+  const since = value("[publishedAt][greater_than]");
   const draft = url.searchParams.get("draft") === "true";
   if (draft && req.headers.authorization !== `users API-Key ${PREVIEW_KEY}`) {
     res.statusCode = 403;
@@ -183,6 +186,8 @@ export function handleCms(req, res, url) {
   if (draft && rest === "articles") docs = docs.map((d) => drafts[d.slug] ?? d);
   if (locale) docs = docs.filter((d) => d.title?.[locale]);
   if (coin) docs = docs.filter((d) => d.coins?.includes(coin));
+  if (type) docs = docs.filter((d) => d.type === type);
+  if (since) docs = docs.filter((d) => d.publishedAt > since);
   res.end(JSON.stringify(page(docs)));
   return true;
 }

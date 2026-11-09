@@ -53,7 +53,10 @@ export class BackendClient {
     this.timeoutMs = options.timeoutMs;
     this.retries = options.retries ?? 2;
     this.breaker = options.breaker ?? new CircuitBreaker();
-    this.fetchFn = options.fetch ?? fetch;
+    // The global fetch is looked up on each call: Next.js replaces it with
+    // its caching fetch after start-up, and a client made earlier (the
+    // catalog sync starts at boot) must still use that one.
+    this.fetchFn = options.fetch ?? ((input, init) => globalThis.fetch(input, init));
     this.sleep = options.sleep ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
     this.random = options.random ?? Math.random;
   }

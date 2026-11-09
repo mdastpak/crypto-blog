@@ -1,9 +1,11 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import Link from "next/link";
 import { ArticleList, pageHref, pageParam } from "@/components/cms/ArticleList";
 import { TYPE_LABELS } from "@/components/cms/ArticleCard";
 import { editorialContext, maybeEditorialContext } from "@/components/cms/context";
-import { Breadcrumbs } from "@/components/ui";
+
 import { cx } from "@/components/ui/cx";
 import { ARTICLE_TYPES, listArticles, type ArticleType } from "@/lib/cms";
 
@@ -29,11 +31,13 @@ export async function generateMetadata({
   if (!ctx) return {};
   const query = await searchParams;
   const filtered = pageParam(query.page) > 1 || !!typeParam(query.type);
-  return {
+  return pageMetadata({
+    locale: ctx.locale,
+    path: "blog",
     title: ctx.t("BLOG_TITLE"),
     description: ctx.t("BLOG_DESCRIPTION"),
-    robots: filtered ? { index: false, follow: true } : undefined,
-  };
+    noindex: filtered,
+  });
 }
 
 export default async function BlogPage({
@@ -53,7 +57,8 @@ export default async function BlogPage({
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/blog`}
         label={t("BREADCRUMBS_LABEL")}
         items={[{ label: t("HOME_LINK"), href: `/${locale}` }, { label: t("BLOG_TITLE") }]}
       />

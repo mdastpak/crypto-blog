@@ -1,8 +1,9 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoinLogo } from "@/components/coins/CoinLogo";
-import { Breadcrumbs, DataTable, EmptyState, PriceChange, type Column } from "@/components/ui";
+import { DataTable, EmptyState, PriceChange, type Column } from "@/components/ui";
 import { formatNumber, formatPrice } from "@/i18n/format";
 import { enabledLocale } from "@/i18n/server";
 import { createTranslator } from "@/i18n/translate";
@@ -17,6 +18,7 @@ import {
   type Market,
 } from "@/lib/market/markets";
 import { priceIn, type ReferencePrice } from "@/lib/market/price";
+import { pageMetadata } from "@/lib/seo/metadata";
 
 type Params = Promise<{ locale: string }>;
 
@@ -28,7 +30,12 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
   const locale = enabledLocale((await params).locale);
   if (!locale) return {};
   const t = createTranslator(locale);
-  return { title: t("MARKETS_TITLE"), description: t("MARKETS_DESCRIPTION") };
+  return pageMetadata({
+    locale,
+    path: "markets",
+    title: t("MARKETS_TITLE"),
+    description: t("MARKETS_DESCRIPTION"),
+  });
 }
 
 interface Row {
@@ -105,7 +112,8 @@ export default async function MarketsPage({ params }: { params: Params }) {
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/markets`}
         label={t("BREADCRUMBS_LABEL")}
         items={[{ label: t("HOME_LINK"), href: `/${locale}` }, { label: t("NAV_MARKETS") }]}
       />

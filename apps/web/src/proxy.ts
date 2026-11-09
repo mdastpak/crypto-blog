@@ -1,8 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { LOCALE_COOKIE, negotiateLocale } from "@/i18n/negotiate";
 import { splitLocale } from "@/i18n/paths";
+import { createTranslator } from "@/i18n/translate";
 import { getConfig } from "@/lib/config";
+import { catalogCopy } from "@/lib/seo/catalog";
 import { checkSite, isCrawler, safeRedirectUrl, VISIT_COOKIE } from "@/lib/sites";
+import type { Locale } from "@/i18n/locales";
 
 const PRIVATE = "private, no-store";
 
@@ -16,6 +19,9 @@ const PRIVATE = "private, no-store";
  * 2. A path without a locale (`/coins`) goes to `/{locale}/coins` (307), the
  *    locale chosen by i18n/negotiate.ts.
  *
+ * 3. A coin an administrator removed from the catalog answers 410 Gone, so
+ *    search engines drop it (lib/seo/catalog.ts).
+ *
  * Redirects depend on the visitor, so they are never stored by a shared
  * cache. The localized pages themselves are the same for everyone.
  */
@@ -23,6 +29,9 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   const config = getConfig();
   const { pathname, searchParams } = request.nextUrl;
   const { locale, rest } = splitLocale(pathname);
+
+  const coin = locale && /^\/coins\/([^/]+)$/.exec(rest)?.[1];
+  if (locale && coin && catalogCopy()?.isRemoved(decodeURIComponent(coin))) return gone(locale);
 
   const firstView =
     config.siteDetection &&
@@ -67,7 +76,19 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
   return response;
 }
 
+/** A small page for a removed coin, with the status that tells crawlers it is gone for good. */
+function gone(locale: Locale): NextResponse {
+  const t = createTranslator(locale);
+  const escape = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+  const html = `<!doctype html><html lang="${locale}" dir="${locale === "fa" ? "rtl" : "ltr"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>${escape(t("COIN_GONE_TITLE"))}</title></head><body style="font-family:system-ui,sans-serif;max-width:40rem;margin:4rem auto;padding:0 1rem"><h1>${escape(t("COIN_GONE_TITLE"))}</h1><p>${escape(t("COIN_GONE_TEXT"))}</p><p><a href="/${locale}/coins">${escape(t("NAV_COINS"))}</a></p></body></html>`;
+  return new NextResponse(html, {
+    status: 410,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "public, max-age=300" },
+  });
+}
+
 export const config = {
   // Every page, but not API routes, Next.js assets, or files with an extension.
-  matcher: ["/((?!api/|_next/|.*\\.[^/]+$).*)"],
+  matcher: ["/((?!api/|_next/|og/|sitemaps/|.*\\.[^/]+$).*)"],
 };

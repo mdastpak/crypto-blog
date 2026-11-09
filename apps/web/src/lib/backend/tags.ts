@@ -10,4 +10,5 @@ export const tags = {
   currencies: "currencies",
   locales: "locales",
   status: "status",
+  sites: "sites",
 };

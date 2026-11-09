@@ -28,6 +28,18 @@ function client(
 }
 
 describe("BackendClient", () => {
+  it("uses the global fetch of each call, not the one at its creation", async () => {
+    const made = new BackendClient({ baseUrl: "https://api.example.com", timeoutMs: 1000 });
+    const later = vi.fn<typeof fetch>(async () => json(asset));
+    vi.stubGlobal("fetch", later);
+    try {
+      await made.get("/market-data/assets/bitcoin", assetSchema);
+      expect(later).toHaveBeenCalledOnce();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("unwraps and validates the envelope, dropping unknown fields", async () => {
     const fetchMock = vi.fn(async () => json(asset));
     const result = await client(fetchMock).get("/market-data/assets/bitcoin", assetSchema);

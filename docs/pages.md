@@ -1,6 +1,6 @@
 # Pages
 
-What each public page shows, where its data comes from, and how it is cached. Every page is under `/{locale}` ([i18n.md](i18n.md)).
+What each public page shows, where its data comes from, and how it is cached. Every page is under `/{locale}` ([i18n.md](i18n.md)); its metadata, structured data, and sitemaps are in [seo.md](seo.md).
 
 ## Coins
 

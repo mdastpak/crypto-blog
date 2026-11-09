@@ -1,3 +1,4 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
@@ -7,7 +8,7 @@ import { editorialContext, maybeEditorialContext } from "@/components/cms/contex
 import { documentMetadata, isPreview } from "@/components/cms/document";
 import { langAttributes, PreviewBanner, TranslationNotice } from "@/components/cms/Notices";
 import { RichText, safeHref } from "@/components/cms/RichText";
-import { Breadcrumbs, ButtonLink } from "@/components/ui";
+import { ButtonLink } from "@/components/ui";
 import { campaignState, getCampaign, mediaUrl, pick, shown, text } from "@/lib/cms";
 
 type Params = Promise<{ locale: string; slug: string }>;
@@ -67,7 +68,8 @@ export default async function CampaignPage({ params }: { params: Params }) {
     <>
       {preview && <PreviewBanner locale={locale} path={`/${locale}/campaigns/${slug}`} />}
       <main className="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-8">
-        <Breadcrumbs
+        <PageBreadcrumbs
+          current={`/${locale}/campaigns/${slug}`}
           label={t("BREADCRUMBS_LABEL")}
           items={[
             { label: t("HOME_LINK"), href: `/${locale}` },
