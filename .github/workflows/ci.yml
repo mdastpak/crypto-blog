@@ -41,16 +41,63 @@ jobs:
           path: apps/web/playwright-report
           retention-days: 7
 
+  cms:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cms
+          POSTGRES_PASSWORD: cms
+          POSTGRES_DB: cms
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U cms" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+      DATABASE_URL: postgres://cms:cms@localhost:5432/cms
+      TEST_DATABASE_URL: postgres://cms:cms@localhost:5432/cms_test
+      PAYLOAD_SECRET: ci-secret-0123456789abcdef0123456789
+      CMS_PUBLIC_URL: http://localhost:3001
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the test database
+        run: PGPASSWORD=cms psql -h localhost -U cms -d cms -c "CREATE DATABASE cms_test"
+      - name: Integration tests against PostgreSQL
+        run: pnpm --filter cms test
+      - name: Migrations apply, and a second run finds nothing to do
+        run: |
+          pnpm --filter cms migrate
+          pnpm --filter cms migrate
+      - name: Generated types and import map are up to date
+        run: |
+          pnpm --filter cms generate:types
+          pnpm --filter cms generate:importmap
+          git diff --exit-code -- apps/cms/src/payload-types.ts "apps/cms/src/app/(payload)/admin/importMap.js"
+      - name: The schema needs no new migration
+        run: |
+          pnpm --filter cms exec payload migrate:create --skip-empty schema-check
+          test -z "$(git status --porcelain apps/cms/src/migrations)"
+      - run: pnpm --filter cms build
+
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
-      - name: Build the image
+      - name: Build the web image
         uses: docker/build-push-action@v6
         with:
           context: .
+          target: web
           push: false
           load: true
           tags: crypto-blog-web:ci
@@ -68,6 +115,15 @@ jobs:
           done
           docker logs web
           exit 1
+      - name: Build the CMS images
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: cms
+          push: false
+          load: true
+          tags: crypto-blog-cms:ci
+          cache-from: type=gha
       - name: The image refuses to start without configuration
         run: |
           if docker run --rm crypto-blog-web:ci; then

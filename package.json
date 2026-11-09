@@ -14,7 +14,9 @@
     "test": "pnpm -r test",
     "test:e2e": "pnpm --filter web test:e2e",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "build:cms": "pnpm --filter cms build",
+    "dev:cms": "pnpm --filter cms dev"
   },
   "devDependencies": {
     "prettier": "3.9.10"
