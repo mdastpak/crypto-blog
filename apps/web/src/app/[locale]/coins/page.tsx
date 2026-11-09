@@ -1,10 +1,10 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CoinLogo } from "@/components/coins/CoinLogo";
 import {
   Badge,
-  Breadcrumbs,
   Button,
   DataTable,
   EmptyState,
@@ -19,6 +19,7 @@ import { marketData, type Asset } from "@/lib/backend";
 import { getConfig } from "@/lib/config";
 import { mapSettled } from "@/lib/market/concurrency";
 import { referencePrice, toNumber, type ReferencePrice } from "@/lib/market/price";
+import { pageMetadata } from "@/lib/seo/metadata";
 
 type Params = Promise<{ locale: string }>;
 type SearchParams = Promise<{ q?: string | string[]; cursor?: string | string[] }>;
@@ -45,12 +46,14 @@ export async function generateMetadata({
   if (!locale) return {};
   const t = createTranslator(locale);
   const query = await searchParams;
-  return {
+  return pageMetadata({
+    locale,
+    path: "coins",
     title: t("COINS_TITLE"),
     description: t("COINS_DESCRIPTION"),
     // Search results and later pages are not indexed; the first page is.
-    robots: one(query.q) || one(query.cursor) ? { index: false, follow: true } : undefined,
-  };
+    noindex: !!(one(query.q) || one(query.cursor)),
+  });
 }
 
 interface Row {
@@ -147,7 +150,8 @@ export default async function CoinsPage({
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/coins`}
         label={t("BREADCRUMBS_LABEL")}
         items={[{ label: t("HOME_LINK"), href: `/${locale}` }, { label: t("NAV_COINS") }]}
       />

@@ -36,7 +36,7 @@
 | Coin detail, top coins, newest coins     | market data catalog                  | #5    |
 | Markets and pairs                        | listed currencies, tickers per venue | #6    |
 | Articles, categories, authors, campaigns | CMS                                  | #8    |
-| Sitemaps, robots, JSON-LD                | feed, CMS                            | #9    |
+| Sitemaps, robots, JSON-LD                | feed, CMS ([seo.md](seo.md))         | #9    |
 
 ## Languages, direction, theme, and region
 

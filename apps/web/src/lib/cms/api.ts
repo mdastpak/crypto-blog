@@ -70,6 +70,7 @@ const LIST_FIELDS = [
   "author",
   "categories",
   "publishedAt",
+  "updatedAt",
   "coins",
 ];
 
@@ -79,6 +80,8 @@ export interface ArticleFilter {
   tagId?: Taxonomy["id"];
   authorId?: Author["id"];
   coin?: string;
+  /** Only articles published after this time (RFC 3339), e.g. for the news sitemap. */
+  publishedSince?: string;
 }
 
 /** Published articles translated into `locale`, newest first. */
@@ -92,6 +95,7 @@ export async function listArticles(
   if (filter.tagId !== undefined) and.push({ tags: { in: filter.tagId } });
   if (filter.authorId !== undefined) and.push({ author: { equals: filter.authorId } });
   if (filter.coin) and.push({ coins: { contains: filter.coin } });
+  if (filter.publishedSince) and.push({ publishedAt: { greater_than: filter.publishedSince } });
   return client().find("articles", pageOf(articleSchema), {
     where: { and },
     sort: "-publishedAt",

@@ -101,6 +101,8 @@
   "AUTHOR_TITLE": "مطالب {name}",
   "COIN_RELATED_ARTICLES": "مطالب درباره {name}",
   "COIN_VIEW": "مشاهده {name}",
+  "COIN_GONE_TITLE": "این ارز دیگر فهرست نمی‌شود",
+  "COIN_GONE_TEXT": "این ارز از فهرست ما حذف شده است. ارزهای دیگر را ببینید.",
   "MARKETS_TITLE": "بازارها",
   "MARKETS_DESCRIPTION": "همهٔ جفت‌ارزهای صرافی ما، با قیمت میانهٔ آن‌ها در صرافی‌های مختلف.",
   "MARKETS_COL_PAIR": "جفت‌ارز",

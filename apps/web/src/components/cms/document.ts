@@ -1,22 +1,26 @@
 import "server-only";
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
-import type { Locale } from "@/i18n/locales";
 import { mediaUrl, type Media, type Shown } from "@/lib/cms";
 import { getConfig } from "@/lib/config";
+import { pageMetadata } from "@/lib/seo/metadata";
 
 export async function isPreview(): Promise<boolean> {
   return (await draftMode()).isEnabled;
 }
 
-/** Metadata of a document page: canonical and hreflang links, and indexing. */
-export function documentMetadata({
+/**
+ * Metadata of a document page: canonical and hreflang links (only to the
+ * languages it is translated into), Open Graph, and indexing.
+ */
+export async function documentMetadata({
   path,
   view,
   title,
   description,
   image,
   preview,
+  article,
 }: {
   /** The path after the locale, e.g. `blog/what-is-bitcoin`. */
   path: string;
@@ -25,33 +29,19 @@ export function documentMetadata({
   description?: string;
   image?: Media;
   preview: boolean;
-}): Metadata {
-  const { publicSiteUrl, cmsMediaUrl } = getConfig();
-  const og = mediaUrl(image, "og", cmsMediaUrl);
-  const url = (l: Locale) => `${publicSiteUrl}/${l}/${path}`;
-  return {
+  article?: { publishedTime?: string; modifiedTime?: string; section?: string };
+}): Promise<Metadata> {
+  const og = mediaUrl(image, "og", getConfig().cmsMediaUrl);
+  return pageMetadata({
+    locale: view.docLocale,
+    path,
     title,
     description,
-    alternates: {
-      // A page shown in a fallback language points search engines to the original.
-      canonical: url(view.docLocale),
-      languages: Object.fromEntries(view.translations.map((l) => [l, url(l)])),
-    },
-    robots: view.untranslated || preview ? { index: false, follow: true } : undefined,
-    openGraph: {
-      title,
-      description,
-      url: url(view.docLocale),
-      locale: view.docLocale,
-      images: og
-        ? [
-            {
-              url: og.src.startsWith("/") ? `${publicSiteUrl}${og.src}` : og.src,
-              width: og.width,
-              height: og.height,
-            },
-          ]
-        : undefined,
-    },
-  };
+    locales: view.translations,
+    // A page shown in a fallback language points search engines to the original.
+    canonicalLocale: view.docLocale,
+    image: og ? { url: og.src, width: og.width, height: og.height } : undefined,
+    noindex: view.untranslated || preview,
+    article,
+  });
 }

@@ -92,7 +92,27 @@ const routes = {
       return { t: new Date(Date.UTC(2026, 9, 10 + i)).toISOString(), o: c, h: c, l: c, c };
     }),
   }),
-  "/api/v1/public/site": () => ({ redirect: { needed: false } }),
+  "/api/v1/public/site": () => ({ redirect: { needed: false }, sites: [] }),
+  // The catalog feed: the blog's copy of it gives sitemaps, JSON-LD, and 410s.
+  "/api/v1/market-data/feed/assets": () => ({
+    items: [
+      {
+        slug: "bitcoin",
+        updated_at: now,
+        asset: bitcoin,
+        structured_data: {
+          "@type": "Thing",
+          name: "Bitcoin",
+          alternateName: "BTC",
+          sameAs: ["https://bitcoin.org"],
+        },
+      },
+      { slug: "ethereum", updated_at: now, asset: ether },
+      { slug: "terra-classic", updated_at: now, removed: true },
+    ],
+    next_cursor: "c1",
+    has_more: false,
+  }),
   // The exchange's listed currencies; IRT is fiat, a quote only.
   "/api/v1/public/currencies": (url) => {
     const items = [

@@ -1,6 +1,8 @@
+import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/seo/metadata";
 import { notFound } from "next/navigation";
-import { Breadcrumbs } from "@/components/ui";
+
 import type { MessageKey } from "@/i18n/translate";
 import {
   getAuthor,
@@ -47,12 +49,13 @@ export async function listingMetadata(kind: ListingKind, props: ListingProps): P
   const doc = await KINDS[kind].load(slug);
   if (!doc) return {};
   const name = text(doc.name, ctx.order) ?? slug;
-  return {
+  return pageMetadata({
+    locale: ctx.locale,
+    path: `blog/${kind}/${slug}`,
     title: ctx.t(KINDS[kind].title, { name }),
     description: text(description(doc), ctx.order),
-    robots:
-      pageParam((await props.searchParams).page) > 1 ? { index: false, follow: true } : undefined,
-  };
+    noindex: pageParam((await props.searchParams).page) > 1,
+  });
 }
 
 export async function Listing({ kind, ...props }: ListingProps & { kind: ListingKind }) {
@@ -69,7 +72,8 @@ export async function Listing({ kind, ...props }: ListingProps & { kind: Listing
 
   return (
     <main className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-8">
-      <Breadcrumbs
+      <PageBreadcrumbs
+        current={`/${locale}/blog/${kind}/${slug}`}
         label={t("BREADCRUMBS_LABEL")}
         items={[
           { label: t("HOME_LINK"), href: `/${locale}` },

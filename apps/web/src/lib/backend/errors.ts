@@ -1,9 +1,21 @@
+const BRAND = Symbol.for("crypto-blog.backend-error");
+
 /**
  * A failed call to the backend. `code` is the backend's stable error code
  * (docs/api.md, "Errors"), or one of ours for failures before an answer:
  * `timeout`, `network_error`, `circuit_open`, `invalid_response`.
+ *
+ * `instanceof` checks a brand, not the class: the server bundles this module
+ * more than once (instrumentation, pages, route handlers), and they share one
+ * client through globalThis, so an error may come from another bundle's copy.
  */
 export class BackendError extends Error {
+  readonly [BRAND] = true;
+
+  static override [Symbol.hasInstance](value: unknown): boolean {
+    return typeof value === "object" && value !== null && BRAND in value;
+  }
+
   constructor(
     readonly code: string,
     readonly status: number,
