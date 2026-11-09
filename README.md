@@ -69,7 +69,7 @@ docker run -p 3000:3000 \
   crypto-blog-web
 ```
 
-The image runs as a non-root user and holds only the standalone server. It keeps no state on disk, so any number of replicas can run behind a load balancer.
+The image runs as a non-root user and holds only the standalone server. It keeps no state on disk, so any number of replicas can run behind a load balancer, sharing one Redis cache (`CACHE_REDIS_URL` or Sentinel/Cluster settings). See [docs/deployment.md](docs/deployment.md) for the shared cache, security headers, logs, and traces, an example `deploy/docker-compose.yml` with two nodes, and a Kubernetes sketch; and [docs/operations.md](docs/operations.md) for the runbook.
 
 ## CMS
 

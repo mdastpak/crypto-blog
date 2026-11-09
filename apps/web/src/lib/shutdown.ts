@@ -1,6 +1,7 @@
 import "server-only";
 import { getConfig } from "./config";
 import { startDraining } from "./lifecycle";
+import { logger } from "@/lib/log";
 
 let installed = false;
 
@@ -17,9 +18,7 @@ export function installShutdownHandlers(exit: (code: number) => void = process.e
   if (installed || process.env.NEXT_MANUAL_SIG_HANDLE !== "true") return;
   installed = true;
   const onSignal = (signal: NodeJS.Signals) => {
-    if (process.env.NODE_ENV !== "test") {
-      console.info(JSON.stringify({ level: "info", msg: "draining", signal }));
-    }
+    logger.info("draining", { signal });
     startDraining();
     const seconds = getConfig().shutdownDrainSeconds;
     setTimeout(() => exit(0), seconds * 1000).unref();

@@ -1,4 +1,5 @@
 import "server-only";
+import { sharedCache } from "./cache/shared";
 import { ConfigError, getConfig } from "./config";
 import { startCatalogSync } from "./seo/catalog-server";
 import { installShutdownHandlers } from "./shutdown";
@@ -18,6 +19,8 @@ export function startServer(): void {
     process.exit(1);
   }
   installShutdownHandlers();
+  // Connects to the shared cache now, not on the first request (lib/cache).
+  sharedCache();
   // The copy of the catalog behind sitemaps, coin JSON-LD, and 410s (docs/seo.md).
   startCatalogSync();
 }

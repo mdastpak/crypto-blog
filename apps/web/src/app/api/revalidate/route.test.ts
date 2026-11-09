@@ -29,7 +29,6 @@ afterEach(() => {
 
 describe("POST /api/revalidate", () => {
   it("expires the tags of a signed call at once", async () => {
-    vi.spyOn(console, "info").mockImplementation(() => {});
     const POST = await load();
     const body = JSON.stringify({ tags: ["cms:articles", "cms:articles:a", "cms:articles"] });
     const response = await POST(call(body, sign(body, secret)));
@@ -56,6 +55,25 @@ describe("POST /api/revalidate", () => {
       expect((await POST(call(body, sign(body, secret)))).status).toBe(400);
     }
     expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
+  it("marks the tags in the shared cache first, and answers 503 when it cannot", async () => {
+    const { resetSharedCache, sharedCache } = await import("@/lib/cache/shared");
+    resetSharedCache();
+    const markTags = vi.fn().mockRejectedValueOnce(new Error("redis down"));
+    Object.assign(sharedCache(), { store: { available: true, markTags } });
+    try {
+      const POST = await load();
+      const body = JSON.stringify({ tags: ["cms:articles", "cms:articles"] });
+      expect((await POST(call(body, sign(body, secret)))).status).toBe(503);
+      expect(revalidateTag).not.toHaveBeenCalled();
+      // The CMS tries again.
+      expect((await POST(call(body, sign(body, secret)))).status).toBe(200);
+      expect(markTags).toHaveBeenLastCalledWith(["cms:articles"], expect.any(Number));
+      expect(revalidateTag).toHaveBeenCalledWith("cms:articles", { expire: 0 });
+    } finally {
+      resetSharedCache();
+    }
   });
 
   it("is off without a secret", async () => {

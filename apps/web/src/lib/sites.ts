@@ -4,6 +4,7 @@ import { CircuitBreaker } from "./backend/breaker";
 import { BackendClient } from "./backend/client";
 import { siteInfoSchema, type SiteInfo } from "./backend/schemas";
 import { getConfig } from "./config";
+import { logger } from "@/lib/log";
 
 /**
  * Country sites (Crypto-Exchange #285). The backend decides, for a visitor,
@@ -121,13 +122,7 @@ export async function checkSite(
       revalidate: 0,
     });
   } catch (error) {
-    console.warn(
-      JSON.stringify({
-        level: "warn",
-        msg: "site check failed, serving the page on this host",
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    );
+    logger.warn("site check failed, serving the page on this host", { error });
     return undefined;
   }
 }
