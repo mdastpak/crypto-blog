@@ -35,7 +35,7 @@ Run from the repository root.
 
 ## Configuration
 
-The web app reads its configuration from environment variables once, at start-up. An invalid or missing value stops the process with a list of every problem, so a misconfigured node never joins the load balancer. `next build` needs none of them.
+The web app reads its configuration from environment variables once, at start-up. An invalid or missing value stops the process with a list of every problem, so a misconfigured node never joins the load balancer. `next build` needs none of them: pages render on their first request and are cached from then on.
 
 | Variable                 | Default                        | Meaning                                                                |
 | ------------------------ | ------------------------------ | ---------------------------------------------------------------------- |

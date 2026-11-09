@@ -15,6 +15,36 @@ function problems(env: Record<string, string | undefined>): string[] {
   throw new Error("expected a ConfigError");
 }
 
+describe("locales", () => {
+  it("puts English first in an international release", () => {
+    const config = parseConfig({ ...valid, DEPLOYMENT_REGION: "international" });
+    expect(config.locales).toEqual(["en", "fa"]);
+    expect(config.defaultLocale).toBe("en");
+  });
+
+  it("reads LOCALES and DEFAULT_LOCALE", () => {
+    const config = parseConfig({ ...valid, LOCALES: " EN , fa,en", DEFAULT_LOCALE: "en" });
+    expect(config.locales).toEqual(["en", "fa"]);
+    expect(config.defaultLocale).toBe("en");
+  });
+
+  it("defaults to the first locale when the region's is not served", () => {
+    expect(parseConfig({ ...valid, LOCALES: "en" }).defaultLocale).toBe("en");
+  });
+
+  it("refuses a locale without a catalog", () => {
+    expect(problems({ ...valid, LOCALES: "fa,de" })).toEqual([
+      "LOCALES must list locales of this build (fa, en); unknown: de",
+    ]);
+  });
+
+  it("refuses a default that is not served", () => {
+    expect(problems({ ...valid, LOCALES: "fa", DEFAULT_LOCALE: "en" })).toEqual([
+      "DEFAULT_LOCALE must be one of LOCALES (fa)",
+    ]);
+  });
+});
+
 describe("parseConfig", () => {
   it("applies defaults and trims trailing slashes", () => {
     expect(parseConfig(valid)).toEqual({
@@ -24,6 +54,8 @@ describe("parseConfig", () => {
       backendTimeoutMs: 5000,
       shutdownDrainSeconds: 10,
       logLevel: "info",
+      locales: ["fa", "en"],
+      defaultLocale: "fa",
     });
   });
 

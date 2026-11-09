@@ -32,7 +32,7 @@
 
 ## Languages, direction, theme, and region
 
-Routes carry the locale (`/fa/...`, `/en/...`); `lang` and `dir` follow it, and the theme is `light`, `dark`, or `system` (#2). The release region (`DEPLOYMENT_REGION`, the same value as the backend) hides Iran-only content, such as IRT prices and Iranian venues, in an `international` release (#3).
+Routes carry the locale (`/fa/...`, `/en/...`); `lang` and `dir` follow it, and the theme is `light`, `dark`, or `system` ([i18n.md](i18n.md)). The release region (`DEPLOYMENT_REGION`, the same value as the backend) hides Iran-only content, such as IRT prices and Iranian venues, in an `international` release (#3).
 
 ## Health and shutdown
 

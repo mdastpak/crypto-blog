@@ -1,0 +1,16 @@
+{
+  "SITE_NAME": "Crypto Blog",
+  "SITE_DESCRIPTION": "Prices, markets, and news of crypto assets.",
+  "HOME_TITLE": "Crypto Blog",
+  "HOME_INTRO": "Prices, markets, and news of crypto assets. Coin pages, markets, and articles are on the way.",
+  "HOME_UPDATED_AT": "Updated {date}",
+  "NAV_SKIP_TO_CONTENT": "Skip to content",
+  "LOCALE_SWITCHER_LABEL": "Language",
+  "THEME_SWITCHER_LABEL": "Theme",
+  "THEME_LIGHT": "Light",
+  "THEME_DARK": "Dark",
+  "THEME_SYSTEM": "System",
+  "NOT_FOUND_TITLE": "Page not found",
+  "NOT_FOUND_BODY": "The page you are looking for does not exist or has moved.",
+  "NOT_FOUND_HOME": "Back to the home page"
+}

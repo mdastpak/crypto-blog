@@ -1,5 +1,6 @@
 import "server-only";
 import { z } from "zod";
+import { AVAILABLE_LOCALES, isAvailableLocale, type Locale } from "@/i18n/locales";
 
 /** Release regions, the same values as the backend's DEPLOYMENT_REGION. */
 export const REGIONS = ["ir", "international"] as const;
@@ -25,6 +26,28 @@ const schema = z.object({
   BACKEND_TIMEOUT_MS: positiveInt(60_000).default(5_000),
   SHUTDOWN_DRAIN_SECONDS: z.coerce.number().int().min(0).max(300).default(10),
   LOG_LEVEL: z.enum(LOG_LEVELS).default("info"),
+  LOCALES: z
+    .string()
+    .optional()
+    .transform((value, ctx) => {
+      if (value === undefined) return undefined;
+      const tags = [...new Set(value.split(",").map((t) => t.trim().toLowerCase()))].filter(
+        Boolean,
+      );
+      const unknown = tags.filter((t) => !isAvailableLocale(t));
+      if (unknown.length || tags.length === 0) {
+        ctx.addIssue({
+          code: "custom",
+          message: `must list locales of this build (${AVAILABLE_LOCALES.join(", ")}); unknown: ${unknown.join(", ") || "none given"}`,
+        });
+        return z.NEVER;
+      }
+      return tags as Locale[];
+    }),
+  DEFAULT_LOCALE: z
+    .string()
+    .optional()
+    .transform((value) => value?.trim().toLowerCase()),
 });
 
 export interface Config {
@@ -34,6 +57,10 @@ export interface Config {
   backendTimeoutMs: number;
   shutdownDrainSeconds: number;
   logLevel: (typeof LOG_LEVELS)[number];
+  /** The locales this release serves, in the order of the switcher. */
+  locales: Locale[];
+  /** The locale of a visitor whose languages match none of `locales`. */
+  defaultLocale: Locale;
 }
 
 /** Thrown when the environment does not describe a valid configuration. */
@@ -68,6 +95,17 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     );
   }
   const c = result.data;
+  // Persian first in an Iranian release, English first elsewhere.
+  const regionDefault: Locale = c.DEPLOYMENT_REGION === "ir" ? "fa" : "en";
+  const locales = c.LOCALES ?? [
+    regionDefault,
+    ...AVAILABLE_LOCALES.filter((l) => l !== regionDefault),
+  ];
+  const defaultLocale =
+    c.DEFAULT_LOCALE ?? (locales.includes(regionDefault) ? regionDefault : locales[0]!);
+  if (!isAvailableLocale(defaultLocale) || !locales.includes(defaultLocale)) {
+    throw new ConfigError([`DEFAULT_LOCALE must be one of LOCALES (${locales.join(", ")})`]);
+  }
   return {
     backendApiUrl: c.BACKEND_API_URL,
     publicSiteUrl: c.PUBLIC_SITE_URL,
@@ -75,6 +113,8 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     backendTimeoutMs: c.BACKEND_TIMEOUT_MS,
     shutdownDrainSeconds: c.SHUTDOWN_DRAIN_SECONDS,
     logLevel: c.LOG_LEVEL,
+    locales,
+    defaultLocale,
   };
 }
 
