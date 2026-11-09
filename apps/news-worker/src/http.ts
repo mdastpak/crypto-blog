@@ -53,6 +53,11 @@ export class PoliteHttp {
     this.sleep = options.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)));
   }
 
+  /** This node's egress, for other outbound calls such as channel posts. */
+  get egress(): Dispatcher {
+    return this.dispatcher;
+  }
+
   /** The product token robots.txt groups are matched against. */
   get productToken(): string {
     return this.options.userAgent.split("/")[0]!;

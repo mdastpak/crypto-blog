@@ -31,6 +31,22 @@ test("an article shows its body, sources, coin card, and hreflang links", async 
   await expect(page).toHaveURL(/\/en\/blog\/categories\/education$/);
 });
 
+test("generated news is labeled, names its sources, and shows its corrections", async ({
+  page,
+}) => {
+  await page.goto("/en/blog/ether-upgrade-ships-4-abc");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ether upgrade ships");
+  await expect(page.getByText("Automated", { exact: true })).toBeVisible();
+  await expect(page.getByRole("note")).toContainText("without an editor's review");
+  await expect(
+    page.getByRole("link", { name: "Ethereum upgrade goes live (Wire)" }),
+  ).toHaveAttribute("href", "https://wire.example/eth");
+  await expect(page.getByRole("link", { name: "Daily", exact: true })).toBeVisible();
+  const updates = page.getByRole("region", { name: "Updates and corrections" });
+  await expect(updates).toContainText("Correction");
+  await expect(updates).toContainText("Fixed the block number.");
+});
+
 test("a missing translation falls back to Persian, marked and not indexed", async ({ page }) => {
   await page.goto("/en/blog/toman-guide");
   await expect(page.getByRole("note")).toContainText("not available in English yet");

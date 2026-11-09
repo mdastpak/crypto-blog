@@ -175,6 +175,18 @@ export interface Article {
     | {
         name: string;
         url: string;
+        title?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Updates and corrections after publishing, newest last; shown on the page with their time.
+   */
+  corrections?:
+    | {
+        at: string;
+        kind: 'update' | 'correction';
+        note: string;
         id?: string | null;
       }[]
     | null;
@@ -182,6 +194,18 @@ export interface Article {
   categories?: (number | Category)[] | null;
   tags?: (number | Tag)[] | null;
   publishedAt?: string | null;
+  /**
+   * The news worker's story this was drafted from.
+   */
+  externalId?: string | null;
+  /**
+   * The writer that drafted this; the page shows an editorial note.
+   */
+  generatedBy?: string | null;
+  /**
+   * Published by the news worker without review; labeled on the page.
+   */
+  autoPublished?: boolean | null;
   /**
    * Site ids (e.g. ir, global). Empty: every site.
    */
@@ -277,7 +301,7 @@ export interface Author {
 export interface User {
   id: number;
   name: string;
-  roles: ('admin' | 'editor' | 'reviewer' | 'author' | 'viewer')[];
+  roles: ('admin' | 'editor' | 'reviewer' | 'author' | 'viewer' | 'newsbot')[];
   updatedAt: string;
   createdAt: string;
   enableAPIKey?: boolean | null;
@@ -602,12 +626,24 @@ export interface ArticlesSelect<T extends boolean = true> {
     | {
         name?: T;
         url?: T;
+        title?: T;
+        id?: T;
+      };
+  corrections?:
+    | T
+    | {
+        at?: T;
+        kind?: T;
+        note?: T;
         id?: T;
       };
   author?: T;
   categories?: T;
   tags?: T;
   publishedAt?: T;
+  externalId?: T;
+  generatedBy?: T;
+  autoPublished?: T;
   sites?: T;
   regions?: T;
   seo?:

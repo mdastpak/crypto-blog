@@ -28,7 +28,7 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
     payload = await getPayload({ config });
     await payload.db.drizzle.execute("DROP SCHEMA public CASCADE; CREATE SCHEMA public;" as never);
     await payload.db.migrate({ migrations: migrations as never });
-    for (const role of ["admin", "editor", "reviewer", "author", "viewer"]) {
+    for (const role of ["admin", "editor", "reviewer", "author", "viewer", "newsbot"]) {
       const doc = await payload.create({
         collection: "users",
         data: {
@@ -194,5 +194,108 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
       ...asUser("author"),
     });
     expect(updated.roles).toEqual(["author"]);
+  });
+
+  it("the news worker writes labeled news drafts and publishes only auto-published ones", async () => {
+    const generated = {
+      type: "news" as const,
+      generatedBy: "template",
+      sources: [{ name: "Wire", url: "https://wire.example/a", title: "Bitcoin rises" }],
+    };
+    const draft = await payload.create({
+      collection: "articles",
+      data: { ...generated, title: "Bitcoin rises", slug: "news-1", externalId: "cluster-1" },
+      draft: true,
+      locale: "en",
+      ...asUser("newsbot"),
+    });
+    expect(draft).toMatchObject({ externalId: "cluster-1", generatedBy: "template" });
+    expect(draft.autoPublished).toBe(false);
+
+    // The same story twice: the unique id refuses the second.
+    await expect(
+      payload.create({
+        collection: "articles",
+        data: { ...generated, title: "again", slug: "news-1-b", externalId: "cluster-1" },
+        draft: true,
+        locale: "en",
+        ...asUser("newsbot"),
+      }),
+    ).rejects.toThrow();
+
+    // Not labeled: it waits for review.
+    await expect(
+      payload.update({
+        collection: "articles",
+        id: draft.id,
+        data: { _status: "published" },
+        locale: "en",
+        ...asUser("newsbot"),
+      }),
+    ).rejects.toThrow(/Only editors and reviewers/);
+
+    const auto = await payload.create({
+      collection: "articles",
+      data: {
+        ...generated,
+        title: "Ether moves",
+        slug: "news-2",
+        externalId: "cluster-2",
+        autoPublished: true,
+        _status: "published",
+      },
+      locale: "en",
+      ...asUser("newsbot"),
+    });
+    expect(auto).toMatchObject({ _status: "published", autoPublished: true });
+    expect(auto.publishedAt).toBeTruthy();
+  });
+
+  it("only the news worker sets the generated labels, and it writes only news", async () => {
+    const own = await payload.create({
+      collection: "articles",
+      data: {
+        title: "Mine",
+        slug: "author-labels",
+        externalId: "cluster-9",
+        generatedBy: "template",
+        autoPublished: true,
+      },
+      draft: true,
+      locale: "en",
+      ...asUser("author"),
+    });
+    expect(own.externalId ?? null).toBeNull();
+    expect(own.generatedBy ?? null).toBeNull();
+    expect(own.autoPublished).toBe(false);
+
+    await expect(
+      payload.create({
+        collection: "articles",
+        data: { title: "Guide", slug: "bot-guide", type: "guide" },
+        draft: true,
+        locale: "en",
+        ...asUser("newsbot"),
+      }),
+    ).rejects.toThrow(/only news/);
+  });
+
+  it("keeps corrections with a localized note", async () => {
+    const doc = await payload.create({
+      collection: "articles",
+      data: {
+        title: "Corrected",
+        slug: "corrected",
+        type: "news",
+        corrections: [
+          { at: "2026-11-09T10:00:00.000Z", kind: "correction", note: "Fixed a figure" },
+        ],
+      },
+      locale: "en",
+      ...asUser("editor"),
+    });
+    expect(doc.corrections).toEqual([
+      expect.objectContaining({ kind: "correction", note: "Fixed a figure" }),
+    ]);
   });
 });

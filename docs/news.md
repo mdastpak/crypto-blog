@@ -1,6 +1,6 @@
 # News collection
 
-The work of [#14](https://github.com/mdastpak/crypto-blog/issues/14). `apps/news-worker` is a background worker that collects crypto news from many sources into a PostgreSQL store. Editors and the news drafting of [#15](https://github.com/mdastpak/crypto-blog/issues/15) read from it. It publishes nothing itself.
+The work of [#14](https://github.com/mdastpak/crypto-blog/issues/14). `apps/news-worker` is a background worker that collects crypto news from many sources into a PostgreSQL store. With the CMS configured, it also drafts news from the stories it collects and posts published news to channels ([#15](https://github.com/mdastpak/crypto-blog/issues/15), [Editorial workflow](#editorial-workflow)).
 
 ## Run it locally
 
@@ -85,9 +85,9 @@ Schema changes are SQL files in `src/migrations`, applied once per release by `p
 
 - `GET /health/live`: the process is up.
 - `GET /health/ready`: `503` while PostgreSQL does not answer or the worker is stopping.
-- `GET /metrics` (Prometheus): `news_fetches_total{source,result}` (`ok`, `not_modified`, `blocked`, `error`) and `news_items_total{source,outcome}` (`new_story`, `joined_story`, `duplicate`, `invalid`).
+- `GET /metrics` (Prometheus): `news_fetches_total{source,result}` (`ok`, `not_modified`, `blocked`, `error`), `news_items_total{source,outcome}` (`new_story`, `joined_story`, `duplicate`, `invalid`), `news_drafts_total{language,result}` (`pushed`, `published`, `skipped`, `retry`, `failed`, `lost`), and `news_posts_total{channel,result}` (`sent`, `retry`, `failed`, `lost`).
 
-The admin panel's view of sources and stories comes with the drafting of #15.
+Editors see drafted stories in the CMS admin panel (news articles with a `generatedBy` value, and their sources). The state of each source (`last_status`, `last_error`, `consecutive_failures`) and of each draft and post (`status`, `last_error`) is in the news store's tables; alert on `failed` drafts and posts.
 
 ## Settings
 
@@ -109,8 +109,46 @@ The admin panel's view of sources and stories comes with the drafting of #15.
 | `PORT`                 | 3002           | Health and metrics                                                         |
 | `WORKER_ID`            | host and pid   | The lease owner's name                                                     |
 
-Every invalid value is reported at once at start-up, and the worker exits.
+Drafting and channels ([Editorial workflow](#editorial-workflow)):
+
+| Variable                                 | Default    | Meaning                                                                             |
+| ---------------------------------------- | ---------- | ----------------------------------------------------------------------------------- |
+| `CMS_API_URL`, `CMS_API_KEY`             |            | The CMS and the API key of its `newsbot` user; drafting is off without them         |
+| `NEWS_WRITER`                            | `template` | The writer; an LLM writer will be another value                                     |
+| `NEWS_DRAFT_LANGUAGES`                   | `fa,en`    | The languages drafted in; the template writer keeps each story's own                |
+| `NEWS_DRAFT_MIN_SOURCES`                 | 2          | Distinct sources a story needs before it is drafted                                 |
+| `NEWS_DRAFT_SETTLE_MINUTES`              | 20         | How long after a story first appears it is drafted, so more sources can join        |
+| `NEWS_DRAFT_MAX_AGE_HOURS`               | 24         | Older stories are not drafted                                                       |
+| `NEWS_DRAFT_REQUIRE_COINS`               | `true`     | Only stories about a catalog coin                                                   |
+| `NEWS_AUTO_PUBLISH_MIN_SOURCES`          | 0          | 0: every draft waits for an editor; N: a story from N sources is published, labeled |
+| `BLOG_PUBLIC_URL`                        |            | The blog's public address, for links in posts                                       |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` |            | A Telegram channel (`@name` or numeric id) whose admin is the bot                   |
+| `TELEGRAM_LOCALE`                        | `fa`       | The language posted there                                                           |
+| `X_ACCESS_TOKEN`                         |            | An X user-context OAuth 2 token with `tweet.write`; rotate it in the secret store   |
+| `X_LOCALE`                               | `en`       | The language posted there                                                           |
+| `CHANNEL_LOOKBACK_HOURS`                 | 24         | How far back published news is looked for                                           |
+
+Every invalid value is reported at once at start-up, and the worker exits; so is half a pair (a URL without its key) or a channel without the CMS or `BLOG_PUBLIC_URL`.
+
+## Editorial workflow
+
+```
+stories ──► draft jobs ──► writer ──► CMS article (draft) ──► editor reviews, publishes
+                                         │                        │
+                                         └── policy: published ───┤
+                                             (labeled)            ▼
+                                                    blog revalidated; outbox ──► Telegram, X
+```
+
+1. **Ready stories.** Once a minute (one node, through `news_schedules`) stories that are reported by `NEWS_DRAFT_MIN_SOURCES` distinct sources, are older than the settle time and younger than the maximum age, and mention a coin get a draft job per language in `news_drafts`. A story is queued once.
+2. **Drafting.** Workers lease draft jobs (`FOR UPDATE SKIP LOCKED`). The writer is an interface (`src/writer.ts`): the template writer, the one there is now, writes a roundup in the story's language, with the first headline, a summary naming the sources, and every report linked. It copies no source text beyond headlines. An LLM writer can take its place behind `NEWS_WRITER` and an API key, and translate into the other languages.
+3. **Into the CMS.** The draft becomes a `news` article through the CMS's REST API, as the `newsbot` user ([cms.md](cms.md#roles)): title, excerpt, body, coins, sources with their headlines, `generatedBy`, and `externalId`, the story's id. `externalId` is unique in the CMS, and the worker looks it up first, so a push retried after a crash finds the article instead of making a second. A story with only Iranian reports gets the region `ir`, so an international release does not show it. Another language of the same story is added as a draft locale of the same article.
+4. **Review.** By default every draft waits: an editor or reviewer edits it in the admin panel and publishes it, now or scheduled. With `NEWS_AUTO_PUBLISH_MIN_SOURCES` set, a story from that many distinct sources is published at once with `autoPublished` set; the newsbot can publish nothing else. Only the newsbot (and admins) set `externalId`, `generatedBy`, and `autoPublished`.
+5. **On the page.** Publishing revalidates the blog's pages through the CMS webhook. Generated news shows an editorial note (reviewed by an editor, or published automatically), an "Automated" label when auto-published, its sources with their headlines, and its updates and corrections. Editors add those in the article's `corrections` (time, update or correction, a note per language); earlier versions stay in the CMS's version history.
+6. **Channels.** Once a minute one node reads news published in the CMS and queues a post per channel in `news_outbox`: in the channel's language only, for articles shown in this release's region, and only for news published after the channel was first configured (`news_channels`), so turning a channel on does not post the past day. The unique key (channel, article, language) makes queuing idempotent. Workers lease posts and send them through this node's egress (`NEWS_HTTP_PROXY`). A network error, `5xx`, or rate limit is retried with backoff (from a minute, doubling, up to 6 hours, or the time the channel asks); a rejection (bad token or chat) fails at once; after 8 tries a post is `failed`. Delivery is at least once: a node that dies between sending and recording sends again after its lease ends.
+
+Retried drafts follow the same backoff and fail after 8 tries.
 
 ## Tests
 
-`pnpm --filter news-worker test` runs the unit tests (feeds, normalization, coins, stories, robots.txt, the polite HTTP client, settings) on recorded feeds in `src/fixtures`, with no network. With `TEST_DATABASE_URL` set to an empty database, integration tests run against PostgreSQL: migrations run once from two jobs, source sync, leases shared by two workers and taken back after a crash, regions, deduplication, one story from two workers at once, a whole fetch then a `304`, and backoff. CI runs both.
+`pnpm --filter news-worker test` runs the unit tests (feeds, normalization, coins, stories, robots.txt, the polite HTTP client, settings) on recorded feeds in `src/fixtures`, with no network. With `TEST_DATABASE_URL` set to an empty database, integration tests run against PostgreSQL: migrations run once from two jobs, source sync, leases shared by two workers and taken back after a crash, regions, deduplication, one story from two workers at once, a whole fetch then a `304`, and backoff; and for the editorial workflow, which stories are queued, periodic jobs on one node, drafting once despite a retried push, the review policy and regions, draft retries, idempotent post queuing, post retries and rejections, and the whole desk from draft to post, with the CMS replaced by an in-memory one. Unit tests cover the template writer, the policy, the CMS client, and the channels' formats and errors. CI runs both.

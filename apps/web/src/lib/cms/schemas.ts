@@ -94,9 +94,22 @@ export const articleSchema = z.object({
     .nullish()
     .transform((v) => v ?? []),
   sources: z
-    .array(z.object({ name: z.string(), url: z.string() }))
+    .array(z.object({ name: z.string(), url: z.string(), title: z.string().nullish() }))
     .nullish()
     .transform((v) => v ?? []),
+  corrections: z
+    .array(
+      z.object({
+        at: z.string(),
+        kind: z.enum(["update", "correction"]).catch("update"),
+        note: localized(z.string()),
+      }),
+    )
+    .nullish()
+    .transform((v) => v ?? []),
+  // Set on news the news worker drafted (docs/news.md): the page says so.
+  generatedBy: z.string().nullish(),
+  autoPublished: z.boolean().nullish(),
   author: relation(authorSchema),
   categories: relations(taxonomySchema),
   tags: relations(taxonomySchema),

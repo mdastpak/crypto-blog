@@ -46,7 +46,7 @@ The work of [#8](https://github.com/mdastpak/crypto-blog/issues/8). Articles and
 
 ### An article: `/{locale}/blog/{slug}`
 
-- Type, date, title, excerpt, author, cover, the body, its sources (links `nofollow`), categories and tags.
+- Type, date, title, excerpt, author, cover, the body, its updates and corrections (newest first, with their time), its sources with their headlines (links `nofollow`), categories and tags. News drafted by the news worker also shows an editorial note, and an "Automated" label when it was published without review ([news.md](news.md#editorial-workflow)).
 - **Coins in this article**: live cards of the coins it is about (catalog slugs, at most 6), with the price as of the page's last refresh. A coin the catalog does not know is left out.
 - `hreflang` links to each served locale the article is translated into, and a canonical link.
 - Rendered on its first request, then cached; publishing revalidates it at once, and it refreshes at most every 5 minutes anyway.

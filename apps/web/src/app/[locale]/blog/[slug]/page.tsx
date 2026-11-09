@@ -63,6 +63,11 @@ export default async function ArticlePage({ params }: { params: Params }) {
   const cover = mediaUrl(article.cover, "hero", ctx.mediaBase);
   const author = article.author;
   const category = article.categories[0];
+  // Each note in the reader's language when it has one, newest first.
+  const corrections = article.corrections
+    .map((c) => ({ ...c, note: pick(c.note, ctx.order) }))
+    .filter((c): c is typeof c & { note: NonNullable<typeof c.note> } => !!c.note)
+    .sort((a, b) => b.at.localeCompare(a.at));
 
   return (
     <>
@@ -99,6 +104,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
               className="flex flex-wrap items-center gap-2 text-sm text-muted"
             >
               <Badge tone="accent">{t(TYPE_LABELS[article.type])}</Badge>
+              {article.autoPublished && <Badge tone="warning">{t("NEWS_AUTOMATED")}</Badge>}
               {article.publishedAt && (
                 <time dateTime={article.publishedAt}>
                   {t("ARTICLE_PUBLISHED", { date: formatDate(locale, article.publishedAt) })}
@@ -142,6 +148,31 @@ export default async function ArticlePage({ params }: { params: Params }) {
               />
             </div>
           )}
+          {corrections.length > 0 && (
+            <section
+              aria-labelledby="updates"
+              {...langAttributes(locale, docLocale)}
+              className="flex flex-col gap-2 rounded-card border border-border p-4 text-sm"
+            >
+              <h2 id="updates" className="font-semibold">
+                {t("ARTICLE_UPDATES")}
+              </h2>
+              <ul className="flex flex-col gap-2">
+                {corrections.map((c) => (
+                  <li key={`${c.at}:${c.kind}`}>
+                    <strong>
+                      {t(c.kind === "correction" ? "ARTICLE_CORRECTION" : "ARTICLE_UPDATE")}
+                    </strong>{" "}
+                    <time dateTime={c.at} className="text-muted">
+                      {formatDate(locale, c.at, { dateStyle: "medium", timeStyle: "short" })}
+                    </time>
+                    {": "}
+                    <span {...langAttributes(c.note.locale, locale)}>{c.note.value}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {article.sources.length > 0 && (
             <section aria-labelledby="sources" className="flex flex-col gap-2 text-sm">
               <h2 id="sources" {...langAttributes(locale, docLocale)} className="font-semibold">
@@ -150,20 +181,30 @@ export default async function ArticlePage({ params }: { params: Params }) {
               <ul className="list-disc ps-5">
                 {article.sources.map((source) => {
                   const href = safeHref(source.url);
+                  const label = source.title ? `${source.title} (${source.name})` : source.name;
                   return (
                     <li key={`${source.name}:${source.url}`}>
                       {href ? (
                         <a href={href} rel="noopener noreferrer nofollow" className="underline">
-                          {source.name}
+                          {label}
                         </a>
                       ) : (
-                        source.name
+                        label
                       )}
                     </li>
                   );
                 })}
               </ul>
             </section>
+          )}
+          {article.generatedBy && (
+            <p
+              {...langAttributes(locale, docLocale)}
+              role="note"
+              className="rounded-card bg-surface-muted p-3 text-sm text-muted"
+            >
+              {t(article.autoPublished ? "NEWS_NOTE_AUTOMATED" : "NEWS_NOTE_REVIEWED")}
+            </p>
           )}
         </article>
         {(article.categories.length > 0 || article.tags.length > 0) && (

@@ -8,6 +8,14 @@ export class Metrics {
       "news_items_total",
       "Items by source and outcome (new_story, joined_story, duplicate, invalid).",
     );
+    this.define(
+      "news_drafts_total",
+      "Draft jobs by language and result (pushed, published, skipped, retry, failed, lost).",
+    );
+    this.define(
+      "news_posts_total",
+      "Channel posts by channel and result (sent, retry, failed, lost).",
+    );
   }
 
   private define(name: string, help: string) {
