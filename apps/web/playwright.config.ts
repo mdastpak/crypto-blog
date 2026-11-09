@@ -8,6 +8,8 @@ const PREVIEW_KEY = "e2e-preview-key-0123456789abcdef";
 
 export default defineConfig({
   testDir: "./e2e",
+  // Needs Redis and two servers: playwright.multinode.config.ts.
+  testIgnore: "multinode/**",
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,

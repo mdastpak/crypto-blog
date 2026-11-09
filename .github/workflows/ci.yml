@@ -18,6 +18,12 @@ jobs:
     timeout-minutes: 20
     env:
       NEXT_TELEMETRY_DISABLED: "1"
+    services:
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 5s --health-timeout 3s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -34,6 +40,10 @@ jobs:
       - name: Install Playwright browser
         run: pnpm --filter web exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - name: Two nodes share one cache
+        run: pnpm --filter web test:multinode
+        env:
+          CACHE_REDIS_URL: redis://127.0.0.1:6379/0
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
@@ -141,6 +151,7 @@ jobs:
           docker run -d --name web -p 3000:3000 \
             -e BACKEND_API_URL=http://127.0.0.1:9/api/v1 \
             -e PUBLIC_SITE_URL=http://localhost:3000 \
+            -e CACHE_REDIS_URL=redis://127.0.0.1:9/0 \
             crypto-blog-web:ci
           for i in $(seq 1 30); do
             if curl -fsS http://localhost:3000/api/health/ready; then exit 0; fi

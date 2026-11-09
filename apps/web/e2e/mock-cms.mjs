@@ -149,6 +149,15 @@ function page(docs) {
 export function handleCms(req, res, url) {
   if (!url.pathname.startsWith("/cms/api/")) return false;
   const rest = url.pathname.slice("/cms/api/".length);
+  // Test control: retitles an article in English, as an editor would.
+  if (rest === "__mock/retitle" && req.method === "POST") {
+    const slug = url.searchParams.get("slug");
+    const article = articles.find((a) => a.slug === slug);
+    if (article) article.title = { ...article.title, en: url.searchParams.get("en") };
+    res.statusCode = article ? 204 : 404;
+    res.end();
+    return true;
+  }
   if (rest.startsWith("media/file/")) {
     res.setHeader("content-type", "image/png");
     // A 1×1 transparent PNG.

@@ -2,6 +2,7 @@ import type { Locale } from "@/i18n/locales";
 import { cmsEnabled, fallbackOrder, listArticles } from "@/lib/cms";
 import { getConfig } from "@/lib/config";
 import { ArticleCard } from "./ArticleCard";
+import { logger } from "@/lib/log";
 
 /**
  * The latest articles about a coin, for its page. Nothing when the release
@@ -20,14 +21,7 @@ export async function RelatedArticles({
   if (!cmsEnabled()) return null;
   const { locales, cmsMediaUrl } = getConfig();
   const result = await listArticles(locale, { coin, limit: 3 }).catch((error: unknown) => {
-    console.warn(
-      JSON.stringify({
-        level: "warn",
-        msg: "related articles unavailable",
-        coin,
-        error: error instanceof Error ? error.message : String(error),
-      }),
-    );
+    logger.warn("related articles unavailable", { coin, error });
     return undefined;
   });
   if (!result?.docs.length) return null;

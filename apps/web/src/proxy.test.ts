@@ -165,8 +165,8 @@ describe("country sites", () => {
         throw new TypeError("fetch failed");
       }),
     );
-    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    const proxy = await load({ SITE_DETECTION: "true" });
+    const warn = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const proxy = await load({ SITE_DETECTION: "true", LOG_LEVEL: "warn" });
     const response = await proxy(request("/en/coins"));
     expect(response.headers.get("x-middleware-next")).toBe("1");
     expect(warn).toHaveBeenCalledOnce();
