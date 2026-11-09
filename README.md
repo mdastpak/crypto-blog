@@ -1,6 +1,6 @@
 # crypto-blog
 
-The public, server-rendered site of the crypto exchange: coin pages, top and newest coins, markets, campaigns, and articles. It reads live data from the exchange backend ([mdastpak/Crypto-Exchange](https://github.com/mdastpak/Crypto-Exchange)) and editorial content from a headless [Payload](https://payloadcms.com) CMS.
+The public, server-rendered site of the crypto exchange (`apps/web`) and its CMS (`apps/cms`): coin pages, top and newest coins, markets, campaigns, and articles. It reads live data from the exchange backend ([mdastpak/Crypto-Exchange](https://github.com/mdastpak/Crypto-Exchange)) and editorial content from a headless [Payload](https://payloadcms.com) CMS.
 
 See [docs/architecture.md](docs/architecture.md) for how the pieces fit together and the [roadmap epic](https://github.com/mdastpak/crypto-blog/issues/11) for what is planned.
 
@@ -69,6 +69,10 @@ docker run -p 3000:3000 \
 ```
 
 The image runs as a non-root user and holds only the standalone server. It keeps no state on disk, so any number of replicas can run behind a load balancer.
+
+## CMS
+
+Articles and campaigns live in a Payload CMS in `apps/cms`; see [docs/cms.md](docs/cms.md) to run it, its roles, and its deployment.
 
 ## Contributing
 
