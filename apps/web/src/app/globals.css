@@ -76,3 +76,63 @@
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
+
+/* Rich text of the CMS (components/cms/RichText.tsx). */
+@layer components {
+  .cms-prose {
+    line-height: 1.85;
+    overflow-wrap: anywhere;
+  }
+  .cms-prose > * + * {
+    margin-block-start: 1em;
+  }
+  .cms-prose h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-block-start: 1.75em;
+  }
+  .cms-prose h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-block-start: 1.5em;
+  }
+  .cms-prose h4,
+  .cms-prose h5,
+  .cms-prose h6 {
+    font-weight: 700;
+  }
+  .cms-prose a {
+    color: var(--primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .cms-prose ul,
+  .cms-prose ol {
+    padding-inline-start: 1.5rem;
+  }
+  .cms-prose ul {
+    list-style: disc;
+  }
+  .cms-prose ol {
+    list-style: decimal;
+  }
+  .cms-prose blockquote {
+    border-inline-start: 4px solid var(--border);
+    padding-inline-start: 1rem;
+    color: var(--text-muted);
+  }
+  .cms-prose code {
+    background: var(--surface-muted);
+    border-radius: 0.25rem;
+    padding: 0.1em 0.3em;
+    font-size: 0.9em;
+  }
+  .cms-prose hr {
+    border-color: var(--border);
+  }
+  .cms-prose img {
+    border-radius: var(--radius-card);
+    height: auto;
+    max-width: 100%;
+  }
+}

@@ -37,6 +37,8 @@ pnpm dev:cms                              # http://localhost:3001/admin
 | `reviewer` | (only to publish)   | yes       | no      | no            |
 | `author`   | their own documents | no        | no      | no            |
 
+The `viewer` role is for the blog's preview: create one account with it, turn on its API key, and give the key to the web app as `CMS_PREVIEW_API_KEY`. A leaked key reads drafts but cannot change anything. Article slugs `categories`, `tags`, and `authors` are taken by blog pages and refused.
+
 An author's attempt to publish is refused with `403`, so their work waits for review. Only admins change roles, so nobody raises their own. Visitors (no sign-in) read only published documents. Sign-in locks an account for 15 minutes after 5 failures.
 
 ## Publishing and the blog's cache
@@ -49,7 +51,11 @@ X-Signature: t=<unix seconds>,v1=<hex HMAC-SHA256 of "t.body">
 {"tags":["cms:articles","cms:articles:what-is-bitcoin"]}
 ```
 
-The web app refuses a wrong signature and one older than 5 minutes (no replay). A draft save sends nothing. Each URL gets up to three tries; a missed call only delays the change until the web app's own cache lifetime for CMS content ends. List one URL per web deployment (for example, the Iranian and the international one), not per node: revalidation is shared by the nodes of a deployment (#10).
+The web app refuses a wrong signature and one older than 5 minutes (no replay). A draft save sends nothing. Each URL gets up to three tries; a missed call only delays the change until the web app's own cache lifetime for CMS content ends. List one URL per web deployment (for example, the Iranian and the international one), not per node. Until the shared cache of [#10](https://github.com/mdastpak/crypto-blog/issues/10), the call reaches the one node the load balancer picks, and the other nodes refresh when their 5-minute lifetime ends.
+
+## Preview
+
+With `WEB_PREVIEW_URL` set (the blog deployment editors use), each article and campaign gets a **Preview** button in the admin panel. It opens `WEB_PREVIEW_URL/api/preview` with a link signed by `REVALIDATE_SECRET` for that document and locale, valid for an hour; the blog shows the latest draft ([pages.md](pages.md#publishing-and-preview)).
 
 ## Deployment
 

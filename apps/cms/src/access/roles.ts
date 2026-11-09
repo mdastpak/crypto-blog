@@ -5,9 +5,11 @@ import type { Access, FieldAccess, PayloadRequest } from "payload";
  * - admin: everything, including users and settings;
  * - editor: writes, publishes, and deletes any content;
  * - reviewer: reads and publishes, does not write;
- * - author: writes their own drafts, cannot publish.
+ * - author: writes their own drafts, cannot publish;
+ * - viewer: reads drafts, nothing else. The blog's preview signs in with
+ *   the API key of a viewer, so a leaked key cannot change content.
  */
-export const ROLES = ["admin", "editor", "reviewer", "author"] as const;
+export const ROLES = ["admin", "editor", "reviewer", "author", "viewer"] as const;
 export type Role = (typeof ROLES)[number];
 
 interface UserLike {

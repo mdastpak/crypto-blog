@@ -19,6 +19,8 @@ const schema = z
       )
       .pipe(z.array(url)),
     REVALIDATE_SECRET: z.string().default(""),
+    // The web deployment editors preview drafts on, e.g. https://blog.example.com.
+    WEB_PREVIEW_URL: url.optional(),
     S3_BUCKET: z.string().default(""),
     S3_REGION: z.string().default("us-east-1"),
     S3_ENDPOINT: z.string().default(""),
@@ -32,6 +34,13 @@ const schema = z
         code: "custom",
         path: ["REVALIDATE_SECRET"],
         message: "must be at least 32 characters when WEB_REVALIDATE_URLS is set",
+      });
+    }
+    if (env.WEB_PREVIEW_URL && env.REVALIDATE_SECRET.length < 32) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["REVALIDATE_SECRET"],
+        message: "must be at least 32 characters when WEB_PREVIEW_URL is set",
       });
     }
     if (env.NODE_ENV === "production" && !env.S3_BUCKET) {

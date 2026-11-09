@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { CoinLogo } from "@/components/coins/CoinLogo";
 import { PriceChart, type ChartPoint } from "@/components/coins/PriceChart";
 import { VenueTable } from "@/components/coins/VenueTable";
+import { RelatedArticles } from "@/components/cms/RelatedArticles";
 import { Badge, Breadcrumbs, ButtonLink, Card, PriceChange } from "@/components/ui";
 import { formatDate, formatNumber, formatPrice } from "@/i18n/format";
 import type { Locale } from "@/i18n/locales";
@@ -200,6 +201,12 @@ export default async function CoinPage({ params }: { params: Params }) {
           )}
         </aside>
       </div>
+
+      <RelatedArticles
+        coin={asset.slug}
+        locale={locale}
+        title={t("COIN_RELATED_ARTICLES", { name: asset.name })}
+      />
 
       {asset.attribution && (
         <p className="text-xs text-muted">{t("COIN_SOURCE", { source: asset.attribution })}</p>

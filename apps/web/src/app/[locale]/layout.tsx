@@ -46,7 +46,7 @@ export default async function LocaleLayout({
   const locale = enabledLocale((await params).locale);
   if (!locale) notFound();
   const t = createTranslator(locale);
-  const { brand: brandId, locales } = getConfig();
+  const { brand: brandId, locales, cmsApiUrl } = getConfig();
   const brand = getBrand(brandId);
   return (
     // The theme script sets data-theme before React hydrates.
@@ -63,7 +63,7 @@ export default async function LocaleLayout({
         >
           {t("NAV_SKIP_TO_CONTENT")}
         </a>
-        <SiteHeader locale={locale} locales={locales} brand={brand} />
+        <SiteHeader locale={locale} locales={locales} brand={brand} editorial={!!cmsApiUrl} />
         <div id="content" className="flex-1">
           {children}
         </div>

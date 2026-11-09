@@ -1,6 +1,7 @@
 // A stand-in for the exchange backend in end-to-end tests: fixed answers for
 // the routes the pages read, so the tests need no network or real backend.
 import { createServer } from "node:http";
+import { handleCms } from "./mock-cms.mjs";
 
 const port = Number(process.env.MOCK_BACKEND_PORT ?? 3199);
 const now = "2026-11-09T10:00:00Z";
@@ -80,7 +81,9 @@ const routes = {
 };
 
 createServer((req, res) => {
-  const { pathname } = new URL(req.url, "http://localhost");
+  const url = new URL(req.url, "http://localhost");
+  if (handleCms(req, res, url)) return;
+  const { pathname } = url;
   const route = routes[pathname];
   res.setHeader("content-type", "application/json");
   if (!route) {
