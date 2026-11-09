@@ -1,0 +1,24 @@
+{
+  "sources": [
+    {
+      "id": "example-global",
+      "name": "Example Crypto News",
+      "url": "https://news.example.com/rss",
+      "homepage": "https://news.example.com",
+      "language": "en",
+      "region": "global",
+      "license": "headline",
+      "intervalMinutes": 15
+    },
+    {
+      "id": "example-ir",
+      "name": "نمونه خبر رمزارز",
+      "url": "https://news.example.ir/feed",
+      "language": "fa",
+      "region": "ir",
+      "license": "headline",
+      "intervalMinutes": 30,
+      "enabled": false
+    }
+  ]
+}

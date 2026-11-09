@@ -16,7 +16,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "build:cms": "pnpm --filter cms build",
-    "dev:cms": "pnpm --filter cms dev"
+    "dev:cms": "pnpm --filter cms dev",
+    "dev:news": "pnpm --filter news-worker dev"
   },
   "devDependencies": {
     "prettier": "3.9.10"

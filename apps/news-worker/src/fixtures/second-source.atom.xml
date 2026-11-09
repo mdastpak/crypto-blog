@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Another Crypto Desk</title>
+  <id>urn:another</id>
+  <entry>
+    <title type="html">Bitcoin tops $70,000 as ETF inflows surge to record</title>
+    <link rel="alternate" href="https://another.example.org/a/bitcoin-70k"/>
+    <link rel="enclosure" href="https://another.example.org/a/bitcoin-70k.mp3"/>
+    <id>tag:another.example.org,2026:1</id>
+    <published>2026-11-09T09:00:00Z</published>
+    <updated>2026-11-09T09:10:00Z</updated>
+    <summary>Bitcoin climbed past $70k on record spot ETF inflows.</summary>
+    <author><name>Desk</name></author>
+  </entry>
+  <entry>
+    <title>Cardano upgrade goes live</title>
+    <link href="https://another.example.org/a/cardano-upgrade"/>
+    <id>tag:another.example.org,2026:2</id>
+    <updated>2026-11-09T06:00:00Z</updated>
+    <summary>The Cardano network finished its hard fork.</summary>
+  </entry>
+</feed>

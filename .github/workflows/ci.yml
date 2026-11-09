@@ -87,6 +87,39 @@ jobs:
           test -z "$(git status --porcelain apps/cms/src/migrations)"
       - run: pnpm --filter cms build
 
+  news:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: news
+          POSTGRES_PASSWORD: news
+          POSTGRES_DB: news
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U news" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgres://news:news@localhost:5432/news
+      TEST_DATABASE_URL: postgres://news:news@localhost:5432/news_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Create the test database
+        run: PGPASSWORD=news psql -h localhost -U news -d news -c "CREATE DATABASE news_test"
+      - name: Unit and integration tests against PostgreSQL
+        run: pnpm --filter news-worker test
+      - name: Migrations apply, and a second run finds nothing to do
+        run: |
+          pnpm --filter news-worker migrate
+          pnpm --filter news-worker migrate
+
   docker:
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -124,6 +157,20 @@ jobs:
           load: true
           tags: crypto-blog-cms:ci
           cache-from: type=gha
+      - name: Build the news worker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: news-worker
+          push: false
+          load: true
+          tags: crypto-blog-news:ci
+          cache-from: type=gha
+      - name: The news worker refuses to start without configuration
+        run: |
+          if docker run --rm crypto-blog-news:ci; then
+            echo "expected a non-zero exit"; exit 1
+          fi
       - name: The image refuses to start without configuration
         run: |
           if docker run --rm crypto-blog-web:ci; then

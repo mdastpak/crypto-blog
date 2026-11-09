@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/">
+  <channel>
+    <title>Example Crypto News</title>
+    <link>https://news.example.com/</link>
+    <item>
+      <title><![CDATA[Bitcoin Tops $70,000 as ETF Inflows Surge]]></title>
+      <link>https://www.news.example.com/markets/2026/11/09/bitcoin-tops-70000/?utm_source=rss&amp;utm_medium=feed</link>
+      <guid isPermaLink="false">ex-1001</guid>
+      <description><![CDATA[<p>BTC rose 4% on Monday as spot <b>ETF</b> inflows hit a record. Ethereum (ETH) followed.</p><script>alert(1)</script>]]></description>
+      <content:encoded><![CDATA[<p>Full article text that only a full license may keep.</p>]]></content:encoded>
+      <pubDate>Mon, 09 Nov 2026 08:30:00 +0000</pubDate>
+      <dc:creator>Jane Reporter</dc:creator>
+      <media:content url="https://cdn.news.example.com/img/btc.jpg" medium="image" />
+    </item>
+    <item>
+      <title>SEC Delays Decision on Solana ETF</title>
+      <link>https://news.example.com/policy/sec-delays-solana-etf#comments</link>
+      <guid>https://news.example.com/policy/sec-delays-solana-etf</guid>
+      <description>The SEC pushed back its ruling on a SOL fund. The CEO of the issuer said &amp;quot;we expected it&amp;quot;.</description>
+      <pubDate>Mon, 09 Nov 2026 07:00:00 GMT</pubDate>
+      <enclosure url="https://cdn.news.example.com/img/sol.png" type="image/png" length="1000" />
+    </item>
+    <item>
+      <title>   </title>
+      <link>https://news.example.com/empty-title</link>
+    </item>
+    <item>
+      <title>Gas fees fall to a yearly low</title>
+      <link>https://news.example.com/gas-fees</link>
+      <description>Network gas costs dropped as activity cooled.</description>
+      <pubDate>not a date</pubDate>
+    </item>
+  </channel>
+</rss>

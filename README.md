@@ -74,6 +74,10 @@ The image runs as a non-root user and holds only the standalone server. It keeps
 
 Articles and campaigns live in a Payload CMS in `apps/cms`; see [docs/cms.md](docs/cms.md) to run it, its roles, and its deployment.
 
+## News worker
+
+`apps/news-worker` collects crypto news from RSS and Atom feeds into a store of stories for editors and news drafting; see [docs/news.md](docs/news.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
