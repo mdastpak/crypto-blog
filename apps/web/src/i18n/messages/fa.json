@@ -1,0 +1,16 @@
+{
+  "SITE_NAME": "کریپتو بلاگ",
+  "SITE_DESCRIPTION": "قیمت‌ها، بازارها و اخبار رمزارزها.",
+  "HOME_TITLE": "کریپتو بلاگ",
+  "HOME_INTRO": "قیمت‌ها، بازارها و اخبار رمزارزها. صفحه‌های ارز، بازارها و مقاله‌ها به‌زودی اضافه می‌شوند.",
+  "HOME_UPDATED_AT": "به‌روزرسانی: {date}",
+  "NAV_SKIP_TO_CONTENT": "رفتن به محتوا",
+  "LOCALE_SWITCHER_LABEL": "زبان",
+  "THEME_SWITCHER_LABEL": "پوسته",
+  "THEME_LIGHT": "روشن",
+  "THEME_DARK": "تیره",
+  "THEME_SYSTEM": "سیستم",
+  "NOT_FOUND_TITLE": "صفحه پیدا نشد",
+  "NOT_FOUND_BODY": "صفحه‌ای که دنبالش هستید وجود ندارد یا جابه‌جا شده است.",
+  "NOT_FOUND_HOME": "بازگشت به صفحه اصلی"
+}
