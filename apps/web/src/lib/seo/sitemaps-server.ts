@@ -105,7 +105,13 @@ export async function buildSitemap(name: SitemapName): Promise<string | undefine
 
   switch (name.kind) {
     case "pages": {
-      const paths = ["", "coins", "markets", ...(cmsEnabled() ? ["blog", "campaigns"] : [])];
+      const paths = [
+        "",
+        "coins",
+        "coins/new",
+        "markets",
+        ...(cmsEnabled() ? ["blog", "campaigns"] : []),
+      ];
       return urlset(paths.map((p) => url(locale, p)));
     }
     case "coins": {

@@ -11,6 +11,16 @@
             "in": "query"
           },
           {
+            "enum": [
+              "rank",
+              "newest"
+            ],
+            "type": "string",
+            "description": "The order, rank by default",
+            "name": "sort",
+            "in": "query"
+          },
+          {
             "maximum": 200,
             "minimum": 1,
             "type": "integer",
@@ -533,6 +543,10 @@
           "items": {
             "$ref": "#/definitions/marketdata.Contract"
           }
+        },
+        "created_at": {
+          "description": "CreatedAt is when the catalog first collected the asset.",
+          "type": "string"
         },
         "description": {
           "type": "string"

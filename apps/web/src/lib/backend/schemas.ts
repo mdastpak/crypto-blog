@@ -72,6 +72,8 @@ export const assetSchema = z.object({
   verified: z.boolean(),
   label: z.string().optional(),
   active: z.boolean().optional(),
+  /** When the catalog first collected the asset. */
+  created_at: timestamp.optional(),
   updated_at: timestamp.optional(),
 });
 export type Asset = z.infer<typeof assetSchema>;

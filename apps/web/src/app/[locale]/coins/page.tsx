@@ -2,23 +2,13 @@ import { PageBreadcrumbs } from "@/components/seo/PageBreadcrumbs";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CoinLogo } from "@/components/coins/CoinLogo";
-import {
-  Badge,
-  Button,
-  DataTable,
-  EmptyState,
-  Pagination,
-  PriceChange,
-  type Column,
-} from "@/components/ui";
-import { formatNumber, formatPrice } from "@/i18n/format";
+import { CoinTable } from "@/components/coins/CoinTable";
+import { Button, EmptyState, Pagination } from "@/components/ui";
 import { enabledLocale } from "@/i18n/server";
 import { createTranslator } from "@/i18n/translate";
-import { marketData, type Asset } from "@/lib/backend";
+import { marketData } from "@/lib/backend";
 import { getConfig } from "@/lib/config";
-import { mapSettled } from "@/lib/market/concurrency";
-import { referencePrice, toNumber, type ReferencePrice } from "@/lib/market/price";
+import { coinRows } from "@/lib/market/load";
 import { pageMetadata } from "@/lib/seo/metadata";
 
 type Params = Promise<{ locale: string }>;
@@ -56,11 +46,6 @@ export async function generateMetadata({
   });
 }
 
-interface Row {
-  asset: Asset;
-  price?: ReferencePrice;
-}
-
 export default async function CoinsPage({
   params,
   searchParams,
@@ -77,71 +62,7 @@ export default async function CoinsPage({
   const cursor = one(query.cursor);
 
   const page = await marketData.listAssets({ q, cursor, limit: PAGE_SIZE }).catch(() => undefined);
-  // The list has no prices: each row's comes from its venues, cached for 30
-  // seconds, a few calls at a time. A failed one shows a dash.
-  const prices = page
-    ? await mapSettled(page.items, 8, async (asset) =>
-        referencePrice((await marketData.getVenues(asset.slug)).quotes, region),
-      )
-    : [];
-  const rows: Row[] = (page?.items ?? []).map((asset, i) => ({ asset, price: prices[i] }));
-
-  const columns: Column<Row>[] = [
-    {
-      key: "rank",
-      header: t("COINS_COL_RANK"),
-      cell: (r) => (r.asset.market_cap_rank ? formatNumber(locale, r.asset.market_cap_rank) : "—"),
-    },
-    {
-      key: "name",
-      header: t("COINS_COL_NAME"),
-      cell: (r) => (
-        <Link
-          href={`/${locale}/coins/${r.asset.slug}`}
-          className="flex items-center gap-2 hover:underline"
-        >
-          <CoinLogo src={r.asset.logo_url} symbol={r.asset.symbol} size={24} />
-          <span className="font-medium">{r.asset.name}</span>
-          <span className="text-muted">{r.asset.symbol}</span>
-          {!r.asset.verified && <Badge tone="warning">{t("COIN_UNVERIFIED")}</Badge>}
-        </Link>
-      ),
-    },
-    {
-      key: "price",
-      header: t("COINS_COL_PRICE"),
-      numeric: true,
-      cell: (r) => (r.price ? <bdi>{formatPrice(locale, r.price.price, r.price.quote)}</bdi> : "—"),
-    },
-    {
-      key: "change",
-      header: t("COINS_COL_CHANGE"),
-      numeric: true,
-      cell: (r) =>
-        r.price?.change !== undefined ? (
-          <PriceChange locale={locale} ratio={r.price.change} />
-        ) : (
-          "—"
-        ),
-    },
-    {
-      key: "supply",
-      header: t("COINS_COL_SUPPLY"),
-      numeric: true,
-      hideOnMobile: true,
-      cell: (r) => {
-        const supply = toNumber(r.asset.circulating_supply);
-        return supply === undefined ? (
-          "—"
-        ) : (
-          <bdi>
-            {formatNumber(locale, supply, { notation: "compact", maximumFractionDigits: 2 })}{" "}
-            {r.asset.symbol}
-          </bdi>
-        );
-      },
-    },
-  ];
+  const rows = page ? await coinRows(page.items, region) : [];
 
   const base = `/${locale}/coins`;
   const nextHref = page?.next_cursor
@@ -158,6 +79,9 @@ export default async function CoinsPage({
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold">{t("COINS_TITLE")}</h1>
         <p className="text-muted">{t("COINS_DESCRIPTION")}</p>
+        <Link href={`${base}/new`} className="text-primary hover:underline">
+          {t("COINS_NEW_LINK")}
+        </Link>
       </header>
 
       <form role="search" action={base} className="flex max-w-md gap-2">
@@ -179,12 +103,11 @@ export default async function CoinsPage({
       </form>
 
       {page ? (
-        <DataTable
+        <CoinTable
+          locale={locale}
           caption={t("COINS_TITLE")}
-          columns={columns}
           rows={rows}
-          rowKey={(r) => r.asset.slug}
-          empty={<EmptyState title={t("COINS_EMPTY")} />}
+          empty={t("COINS_EMPTY")}
         />
       ) : (
         <EmptyState title={t("COINS_UNAVAILABLE")} />
@@ -194,7 +117,10 @@ export default async function CoinsPage({
         label={t("PAGINATION_LABEL")}
         previous={
           cursor
-            ? { href: q ? `${base}?${new URLSearchParams({ q })}` : base, label: t("HOME_LINK") }
+            ? {
+                href: q ? `${base}?${new URLSearchParams({ q })}` : base,
+                label: t("PAGINATION_FIRST"),
+              }
             : undefined
         }
         next={nextHref ? { href: nextHref, label: t("PAGINATION_NEXT") } : undefined}
