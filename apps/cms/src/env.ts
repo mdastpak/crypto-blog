@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DEFAULT_PROXY_EMAIL_HEADER } from "./security/staffAuth";
 
 const url = z.url({ protocol: /^https?$/, error: "must be an absolute http or https URL" });
 
@@ -27,6 +28,17 @@ const schema = z
     S3_ACCESS_KEY_ID: z.string().default(""),
     S3_SECRET_ACCESS_KEY: z.string().default(""),
     NODE_ENV: z.string().default("development"),
+    // Staff sign in through an identity-aware proxy with a second factor
+    // (#30, src/security/staffAuth.ts). The secret the proxy sends with
+    // every request, and the header of the email it signed in.
+    CMS_AUTH_PROXY_SECRET: z.string().default(""),
+    CMS_AUTH_PROXY_EMAIL_HEADER: z
+      .string()
+      .default(DEFAULT_PROXY_EMAIL_HEADER)
+      .transform((v) => v.toLowerCase()),
+    // Whether staff must come through the proxy; on in production unless
+    // set to false.
+    CMS_AUTH_PROXY_REQUIRED: z.enum(["true", "false"]).optional(),
   })
   .superRefine((env, ctx) => {
     if (env.WEB_REVALIDATE_URLS.length > 0 && env.REVALIDATE_SECRET.length < 32) {
@@ -50,9 +62,29 @@ const schema = z
         message: "is required in production: media on local disk is not shared between nodes",
       });
     }
+    if (proxyRequired(env) && env.CMS_AUTH_PROXY_SECRET.length < 32) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["CMS_AUTH_PROXY_SECRET"],
+        message:
+          "must be at least 32 characters in production: staff sign in through the sign-in proxy (set CMS_AUTH_PROXY_REQUIRED=false to accept passwords alone)",
+      });
+    }
   });
 
 export type Env = z.infer<typeof schema>;
+
+/**
+ * Whether staff must come through the sign-in proxy: in production unless
+ * CMS_AUTH_PROXY_REQUIRED=false, elsewhere only when it is true.
+ */
+export function proxyRequired(env: {
+  NODE_ENV: string;
+  CMS_AUTH_PROXY_REQUIRED?: string | undefined;
+}): boolean {
+  if (env.CMS_AUTH_PROXY_REQUIRED) return env.CMS_AUTH_PROXY_REQUIRED === "true";
+  return env.NODE_ENV === "production";
+}
 
 /**
  * Values used only while `next build` evaluates the config, which never

@@ -196,6 +196,56 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
     expect(updated.roles).toEqual(["author"]);
   });
 
+  it("gives API keys only to machine accounts", async () => {
+    await expect(
+      payload.update({ collection: "users", id: users.editor!.id, data: { enableAPIKey: true } }),
+    ).rejects.toThrow(/API key/);
+    const viewer = await payload.update({
+      collection: "users",
+      id: users.viewer!.id,
+      data: { enableAPIKey: true, apiKey: "viewer-api-key-0123456789abcdef" },
+    });
+    expect(viewer.enableAPIKey).toBe(true);
+    await expect(
+      payload.update({
+        collection: "users",
+        id: users.viewer!.id,
+        data: { roles: ["viewer", "editor"] },
+      }),
+    ).rejects.toThrow(/API key/);
+  });
+
+  it("removes the API keys of people's accounts once", async () => {
+    const { up } = await import("./migrations/20261110_142944_disable_staff_api_keys");
+    await payload.db.drizzle.execute(
+      `UPDATE users SET enable_a_p_i_key = true, api_key = 'k' WHERE id IN (${users.author!.id}, ${users.newsbot!.id})` as never,
+    );
+    await up({ db: payload.db.drizzle, payload, req: {} } as never);
+    const author = await payload.findByID({ collection: "users", id: users.author!.id });
+    const newsbot = await payload.findByID({ collection: "users", id: users.newsbot!.id });
+    expect(author.enableAPIKey).toBe(false);
+    expect(newsbot.enableAPIKey).toBe(true);
+  });
+
+  it("signs in only the person the sign-in proxy signed in", async () => {
+    const { configureStaffAuth, staffAuthSettings } = await import("./security/staffAuth");
+    const before = staffAuthSettings();
+    configureStaffAuth({ required: true, emailHeader: "x-auth-request-email", production: true });
+    try {
+      const login = (email: string) =>
+        payload.login({
+          collection: "users",
+          data: { email: "reviewer@test.example", password: "a-long-password-1" },
+          req: { headers: new Headers({ "x-auth-request-email": email }) } as never,
+        });
+      await expect(login("editor@test.example")).rejects.toThrow(/sign-in proxy/);
+      const result = await login("Reviewer@test.example");
+      expect(result.user?.email).toBe("reviewer@test.example");
+    } finally {
+      configureStaffAuth(before);
+    }
+  });
+
   it("the news worker writes labeled news drafts and publishes only auto-published ones", async () => {
     const generated = {
       type: "news" as const,
