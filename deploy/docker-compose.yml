@@ -87,6 +87,11 @@ services:
       WEB_REVALIDATE_URLS: http://balancer/api/revalidate
       REVALIDATE_SECRET: ${REVALIDATE_SECRET}
       WEB_PREVIEW_URL: ${PUBLIC_SITE_URL:-http://localhost:8080}
+      # This example has no sign-in proxy, so staff sign in with a password
+      # alone. A real deployment puts one in front of the CMS and sets its
+      # secret instead (docs/cms.md#staff-sign-in).
+      CMS_AUTH_PROXY_REQUIRED: ${CMS_AUTH_PROXY_REQUIRED:-false}
+      CMS_AUTH_PROXY_SECRET: ${CMS_AUTH_PROXY_SECRET:-}
 
   cms:
     build: { context: .., target: cms }

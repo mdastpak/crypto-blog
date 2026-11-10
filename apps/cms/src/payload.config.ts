@@ -11,15 +11,26 @@ import { Campaigns } from "./collections/Campaigns";
 import { Media } from "./collections/Media";
 import { Categories, Tags } from "./collections/Taxonomies";
 import { Users } from "./collections/Users";
-import { parseEnv } from "./env";
+import { parseEnv, proxyRequired } from "./env";
 import { configurePreview } from "./hooks/preview";
 import { configureRevalidation } from "./hooks/revalidate";
+import { configureStaffAuth } from "./security/staffAuth";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
 const env = parseEnv(process.env);
 
 configureRevalidation({ urls: env.WEB_REVALIDATE_URLS, secret: env.REVALIDATE_SECRET });
 configurePreview({ webUrl: env.WEB_PREVIEW_URL, secret: env.REVALIDATE_SECRET });
+configureStaffAuth({
+  required: proxyRequired(env),
+  emailHeader: env.CMS_AUTH_PROXY_EMAIL_HEADER,
+  production: env.NODE_ENV === "production",
+});
+if (env.NODE_ENV === "production" && !proxyRequired(env)) {
+  console.warn(
+    "CMS_AUTH_PROXY_REQUIRED=false: staff sign in with a password alone, without a second factor",
+  );
+}
 
 export default buildConfig({
   serverURL: env.CMS_PUBLIC_URL,
