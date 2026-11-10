@@ -29,9 +29,16 @@ The work of [#5](https://github.com/mdastpak/crypto-blog/issues/5). Data comes f
 
 In an `international` release, Iranian venues and IRT/IRR quotes are hidden from every table and never counted in a price ([sites.md](sites.md#the-release-region)).
 
-### Newest coins
+### Newest coins: `/{locale}/coins/new`
 
-Waits on the backend's sort by first-seen time (Crypto-Exchange [#304](https://github.com/mdastpak/Crypto-Exchange/issues/304)); tracked in [#20](https://github.com/mdastpak/crypto-blog/issues/20).
+The work of [#20](https://github.com/mdastpak/crypto-blog/issues/20), on the backend's `GET /market-data/assets?sort=newest` (Crypto-Exchange [#304](https://github.com/mdastpak/Crypto-Exchange/issues/304)).
+
+- The assets the catalog collected most recently, newest first, 50 a page, with cursor pagination (`?cursor=`). Linked from the top coins page.
+- The same table as top coins (`components/coins/CoinTable`), with an **Added** column: the date the catalog first collected the coin, in the page's calendar (Jalali on `fa`), in a `<time>` element. It is when our catalog first saw the coin, not its launch date.
+- Prices load as on top coins: from each row's venues, at most 8 calls at a time, cached for 30 s; a backend outage shows a notice instead of the table.
+- Later pages are `noindex, follow`; the first page is indexed and in the pages sitemap.
+- Rendered per request (it depends on the cursor); the backend answers it reads are cached. A cursor of the top coins list is not one of this list, and the backend refuses it.
+- `new` is a fixed route, so a coin whose slug is `new` would have no page of its own; the backend's slugs are names such as `bitcoin`, and none is `new` today.
 
 ## Markets
 

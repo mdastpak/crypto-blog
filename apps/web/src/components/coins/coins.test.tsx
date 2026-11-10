@@ -1,6 +1,7 @@
 import { render, screen, within } from "@testing-library/react";
 import type { VenueQuote } from "@/lib/backend/schemas";
 import { CoinLogo } from "./CoinLogo";
+import { CoinTable, type CoinRow } from "./CoinTable";
 import { chartPath, PriceChart } from "./PriceChart";
 import { VenueTable } from "./VenueTable";
 
@@ -105,5 +106,55 @@ describe("CoinLogo", () => {
       <CoinLogo symbol="BTC" src="https://elsewhere.example/btc.png" hosts={["logos.example"]} />,
     );
     expect(screen.getByText("B")).toHaveAttribute("aria-hidden", "true");
+  });
+});
+
+describe("CoinTable", () => {
+  const rows: CoinRow[] = [
+    {
+      asset: {
+        slug: "pepe",
+        symbol: "PEPE",
+        name: "Pepe",
+        verified: false,
+        logo_url: "",
+        created_at: "2026-11-05T08:00:00Z",
+      },
+      price: {
+        price: 0.00001,
+        quote: "USDT",
+        venues: 3,
+        observedAt: "2026-11-09T10:00:00Z",
+        chartVenue: "binance",
+      },
+    },
+    { asset: { slug: "bonk", symbol: "BONK", name: "Bonk", verified: true, logo_url: "" } },
+  ];
+
+  it("lists the coins without the added column by default", () => {
+    render(<CoinTable locale="en" caption="Top" rows={rows} empty="None" />);
+    const table = screen.getByRole("table", { name: "Top" });
+    expect(within(table).queryByRole("columnheader", { name: "Added" })).toBeNull();
+    const pepe = within(table).getByRole("row", { name: /Pepe/ });
+    expect(pepe).toHaveTextContent("Unverified");
+    expect(within(pepe).getByRole("link")).toHaveAttribute("href", "/en/coins/pepe");
+    expect(within(table).getByRole("row", { name: /Bonk/ })).not.toHaveTextContent("Unverified");
+  });
+
+  it("shows the date added, Jalali in Persian, and a dash without one", () => {
+    render(<CoinTable locale="fa" caption="New" rows={rows} empty="None" showAdded />);
+    const table = screen.getByRole("table", { name: "New" });
+    expect(within(table).getByRole("columnheader", { name: "تاریخ افزودن" })).toBeInTheDocument();
+    const added = within(within(table).getByRole("row", { name: /Pepe/ })).getByText(
+      "۱۴ آبان ۱۴۰۵",
+    );
+    expect(added.tagName).toBe("TIME");
+    expect(added).toHaveAttribute("dateTime", "2026-11-05T08:00:00Z");
+    expect(within(table).getByRole("row", { name: /Bonk/ })).toHaveTextContent("—");
+  });
+
+  it("shows the empty state without rows", () => {
+    render(<CoinTable locale="en" caption="New" rows={[]} empty="No coins yet" />);
+    expect(screen.getByText("No coins yet")).toBeInTheDocument();
   });
 });

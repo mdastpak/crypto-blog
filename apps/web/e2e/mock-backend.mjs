@@ -22,6 +22,7 @@ const bitcoin = {
   attribution: "Data provided by CoinGecko",
   verified: false,
   label: "unverified",
+  created_at: "2026-10-01T08:00:00Z",
   updated_at: now,
 };
 const ether = {
@@ -33,6 +34,7 @@ const ether = {
   logo_url: "https://elsewhere.test/eth.png",
   market_cap_rank: 2,
   max_supply: undefined,
+  created_at: "2026-11-05T08:00:00Z",
 };
 
 const quote = (venue, last, extra = {}) => ({
@@ -59,7 +61,13 @@ const currency = (symbol, en, fa) => ({
 });
 
 const routes = {
-  "/api/v1/market-data/assets": () => ({ items: [bitcoin, ether] }),
+  // sort=newest pages one asset at a time, so the cursor is exercised.
+  "/api/v1/market-data/assets": (url) => {
+    if (url.searchParams.get("sort") !== "newest") return { items: [bitcoin, ether] };
+    return url.searchParams.get("cursor") === "older"
+      ? { items: [bitcoin] }
+      : { items: [ether], next_cursor: "older" };
+  },
   "/api/v1/market-data/assets/bitcoin": () => bitcoin,
   "/api/v1/market-data/assets/ethereum": () => ether,
   "/api/v1/market-data/assets/bitcoin/venues": () => ({

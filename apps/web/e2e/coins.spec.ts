@@ -60,3 +60,30 @@ test("coin logos come from this site, never from a third-party host", async ({ p
   await page.waitForLoadState("networkidle");
   expect([...hosts]).toEqual([new URL(baseURL!).hostname]);
 });
+
+test("newest coins lists the newest first with the date added, page by page", async ({ page }) => {
+  await page.goto("/en/coins");
+  await page.getByRole("link", { name: "Newest coins" }).click();
+  await expect(page).toHaveURL(/\/en\/coins\/new$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Newest cryptocurrencies");
+  const table = page.getByRole("table", { name: "Newest cryptocurrencies" });
+  const ether = table.getByRole("row").filter({ hasText: "Ethereum" });
+  await expect(ether).toContainText("Nov 5, 2026");
+  await expect(ether).toContainText("Unverified");
+  await page.getByRole("link", { name: "Next" }).click();
+  await expect(page).toHaveURL(/\/en\/coins\/new\?cursor=older$/);
+  await expect(
+    page
+      .getByRole("table", { name: "Newest cryptocurrencies" })
+      .getByRole("row")
+      .filter({ hasText: "Bitcoin" }),
+  ).toContainText("64,050 USDT");
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+});
+
+test("newest coins in Persian shows Jalali dates", async ({ page }) => {
+  await page.goto("/fa/coins/new");
+  await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
+  // 2026-11-05 is 14 Aban 1405.
+  await expect(page.getByRole("row").filter({ hasText: "Ethereum" })).toContainText("۱۴ آبان ۱۴۰۵");
+});

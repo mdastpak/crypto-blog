@@ -15,7 +15,7 @@ const asset = await marketData.getAsset(slug).catch((error) => {
 
 | Function                                                            | Route                                    | Cached for | Tags                   |
 | ------------------------------------------------------------------- | ---------------------------------------- | ---------- | ---------------------- |
-| `marketData.listAssets({ q, limit, cursor })`                       | `GET /market-data/assets`                | 5 min      | `assets`               |
+| `marketData.listAssets({ q, sort, limit, cursor })`                 | `GET /market-data/assets`                | 5 min      | `assets`               |
 | `marketData.getAsset(slug)`                                         | `GET /market-data/assets/{slug}`         | 5 min      | `asset:{slug}`         |
 | `marketData.getVenues(slug)`                                        | `GET /market-data/assets/{slug}/venues`  | 30 s       | `asset:{slug}:venues`  |
 | `marketData.getCandles(slug, { venue, quote, interval, from, to })` | `GET /market-data/assets/{slug}/candles` | 60 s       | `asset:{slug}:candles` |

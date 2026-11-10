@@ -49,8 +49,12 @@ export interface PageQuery {
 }
 
 export const marketData = {
-  /** Assets by market cap rank, the unranked last. */
-  listAssets: (query: PageQuery & { q?: string } = {}) =>
+  /**
+   * Assets by market cap rank, the unranked last, or with `sort: "newest"`
+   * the ones the catalog first collected last first. A cursor works only
+   * with the order that gave it.
+   */
+  listAssets: (query: PageQuery & { q?: string; sort?: "rank" | "newest" } = {}) =>
     backend().get("/market-data/assets", assetPageSchema, {
       query: { ...query },
       revalidate: REVALIDATE.catalog,
