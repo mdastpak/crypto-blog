@@ -13,6 +13,8 @@ const bitcoin = {
   kind: "coin",
   description: "The first decentralized cryptocurrency.",
   links: { homepage: "https://bitcoin.org" },
+  // On an allowed host (COIN_LOGO_HOSTS in playwright.config.ts) that does not resolve.
+  logo_url: "https://logos.test/btc.png",
   market_cap_rank: 1,
   circulating_supply: "19780000",
   max_supply: "21000000",
@@ -27,6 +29,8 @@ const ether = {
   slug: "ethereum",
   symbol: "ETH",
   name: "Ethereum",
+  // On a host that is not allowed: shown as a letter.
+  logo_url: "https://elsewhere.test/eth.png",
   market_cap_rank: 2,
   max_supply: undefined,
 };

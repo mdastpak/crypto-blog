@@ -11,6 +11,7 @@ import type { Locale } from "@/i18n/locales";
 import { enabledLocale } from "@/i18n/server";
 import { createTranslator } from "@/i18n/translate";
 import { isNotFound, marketData, type Asset } from "@/lib/backend";
+import { coinLogoPath } from "@/lib/market/logos";
 import { getConfig } from "@/lib/config";
 import { referencePrice, toNumber, visibleQuotes } from "@/lib/market/price";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -89,7 +90,7 @@ export default async function CoinPage({ params }: { params: Params }) {
             name: asset.name,
             symbol: asset.symbol,
             description: asset.description,
-            logo: asset.logo_url,
+            logo: absoluteLogo(asset.logo_url),
           },
           `${getConfig().publicSiteUrl}/${locale}/coins/${slug}`,
         )}
@@ -292,4 +293,11 @@ function Links({ asset, title }: { asset: Asset; title: string }) {
       </ul>
     </Card>
   );
+}
+
+/** The logo as this site serves it, for structured data; none when not allowed. */
+function absoluteLogo(source: string | undefined): string | undefined {
+  const { publicSiteUrl, coinLogoHosts } = getConfig();
+  const path = coinLogoPath(source, coinLogoHosts);
+  return path ? `${publicSiteUrl}${path}` : undefined;
 }

@@ -96,6 +96,7 @@ describe("parseConfig", () => {
       brand: "default",
       designGallery: false,
       marketQuotes: ["USDT", "IRT"],
+      coinLogoHosts: ["assets.coingecko.com", "coin-images.coingecko.com", "s2.coinmarketcap.com"],
       siteDetection: true,
       siteTimeoutMs: 800,
       trustProxyHeaders: false,
@@ -182,5 +183,14 @@ describe("cms", () => {
     expect(problems({ ...valid, MARKET_QUOTES: "US-DT" })).toEqual([
       "MARKET_QUOTES.0 must list symbols such as USDT,IRT",
     ]);
+  });
+  it("reads the coin logo hosts", () => {
+    expect(
+      parseConfig({ ...valid, COIN_LOGO_HOSTS: " Logos.Example , cdn.example,logos.example" })
+        .coinLogoHosts,
+    ).toEqual(["logos.example", "cdn.example"]);
+    expect(() => parseConfig({ ...valid, COIN_LOGO_HOSTS: "https://logos.example" })).toThrow(
+      /COIN_LOGO_HOSTS/,
+    );
   });
 });

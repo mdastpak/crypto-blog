@@ -40,3 +40,23 @@ test("an unknown coin is a 404", async ({ page }) => {
   const response = await page.goto("/en/coins/no-such-coin");
   expect(response?.status()).toBe(404);
 });
+
+test("coin logos come from this site, never from a third-party host", async ({ page, baseURL }) => {
+  // Hosts, not origins: the policy's upgrade-insecure-requests turns the
+  // test server's http into https, on the same host.
+  const hosts = new Set<string>();
+  page.on("request", (request) => hosts.add(new URL(request.url()).hostname));
+  await page.goto("/en/coins");
+  const table = page.getByRole("table", { name: "Top cryptocurrencies by market cap" });
+  const bitcoin = table.getByRole("row").filter({ hasText: "Bitcoin" });
+  await expect(bitcoin.locator("img")).toHaveAttribute(
+    "src",
+    "/coin-logo?u=https%3A%2F%2Flogos.test%2Fbtc.png",
+  );
+  // Not an allowed host: the letter, and no request anywhere.
+  await expect(table.getByRole("row").filter({ hasText: "Ethereum" }).locator("img")).toHaveCount(
+    0,
+  );
+  await page.waitForLoadState("networkidle");
+  expect([...hosts]).toEqual([new URL(baseURL!).hostname]);
+});

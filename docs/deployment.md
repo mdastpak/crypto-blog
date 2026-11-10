@@ -50,7 +50,8 @@ The two-node test (`pnpm --filter web test:multinode`, in CI) runs two productio
 
 Every response carries (`apps/web/src/lib/security/headers.ts`):
 
-- `Content-Security-Policy`: scripts and styles only from the site itself and inline, images from any HTTPS host (coin logos), no plugins, no frames, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `upgrade-insecure-requests`. Inline scripts are allowed instead of nonces: Next.js streams page data in inline scripts, and a nonce would make every page render per request, which the shared cache exists to avoid. No outside text reaches an inline script: React escapes text, and JSON-LD is serialized so it cannot close its tag.
+- `Content-Security-Policy`: scripts and styles only from the site itself and inline, images only from the site itself and the media CDN (`CMS_MEDIA_URL`, see below), no media from elsewhere, no plugins, no frames, `frame-ancestors 'none'`, `form-action 'self'`, `base-uri 'self'`, `upgrade-insecure-requests`. Inline scripts are allowed instead of nonces: Next.js streams page data in inline scripts, and a nonce would make every page render per request, which the shared cache exists to avoid. No outside text reaches an inline script: React escapes text, and JSON-LD is serialized so it cannot close its tag.
+  - The policy is fixed when the image is built, so a media CDN must be named at build time too: `docker build --build-arg CMS_MEDIA_URL=https://media.example.com .`. A server whose `CMS_MEDIA_URL` the build did not name refuses to start, rather than serving pages whose images the browser blocks.
 - `Strict-Transport-Security` (one year, subdomains); `HSTS=false` at build time turns it off where some host is not HTTPS.
 - `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` (no camera, microphone, location, payment, USB), `Cross-Origin-Opener-Policy: same-origin`.
 

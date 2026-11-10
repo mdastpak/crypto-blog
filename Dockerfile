@@ -20,6 +20,9 @@ COPY apps/news-worker/package.json apps/news-worker/
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 
 FROM deps AS build-web
+# The media CDN the Content-Security-Policy lets images come from; fixed at
+# build time, and the server refuses a different CMS_MEDIA_URL at run time.
+ARG CMS_MEDIA_URL=
 COPY . .
 RUN pnpm --filter web build
 

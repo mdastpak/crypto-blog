@@ -36,6 +36,7 @@ export default defineConfig({
         CMS_API_URL: `http://127.0.0.1:${mockPort}/cms/api`,
         REVALIDATE_SECRET: REVALIDATE_SECRET,
         CMS_PREVIEW_API_KEY: PREVIEW_KEY,
+        COIN_LOGO_HOSTS: "logos.test",
         PORT: String(port),
         HOSTNAME: "127.0.0.1",
       },
