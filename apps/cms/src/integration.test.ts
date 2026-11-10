@@ -280,6 +280,51 @@ describe.skipIf(!databaseUrl)("CMS with PostgreSQL", () => {
     ).rejects.toThrow(/only news/);
   });
 
+  it("refuses SVG uploads, even from an author, and accepts raster images (#29)", async () => {
+    const svg = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg"><script>fetch("/api/users")</script></svg>',
+    );
+    await expect(
+      payload.create({
+        collection: "media",
+        data: { alt: "logo" },
+        file: { data: svg, mimetype: "image/svg+xml", name: "logo.svg", size: svg.length },
+        ...asUser("author"),
+      }),
+    ).rejects.toThrow();
+
+    const plainSvg = Buffer.from(
+      '<svg xmlns="http://www.w3.org/2000/svg"><rect width="1" height="1"/></svg>',
+    );
+    await expect(
+      payload.create({
+        collection: "media",
+        data: { alt: "logo" },
+        file: {
+          data: plainSvg,
+          mimetype: "image/svg+xml",
+          name: "plain.svg",
+          size: plainSvg.length,
+        },
+        ...asUser("admin"),
+      }),
+    ).rejects.toThrow();
+
+    // A 1x1 PNG.
+    const png = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      "base64",
+    );
+    const image = await payload.create({
+      collection: "media",
+      data: { alt: "pixel" },
+      file: { data: png, mimetype: "image/png", name: "pixel.png", size: png.length },
+      ...asUser("author"),
+    });
+    expect(image.mimeType).toBe("image/png");
+    await payload.delete({ collection: "media", id: image.id });
+  });
+
   it("keeps corrections with a localized note", async () => {
     const doc = await payload.create({
       collection: "articles",
