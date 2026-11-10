@@ -14,3 +14,6 @@ next-env.d.ts
 apps/*/AGENTS.md
 # Each deployment has its own sources file.
 apps/news-worker/sources.json
+
+# Uploads of local runs and tests without S3
+apps/cms/media/
