@@ -1,21 +1,30 @@
 import { cx } from "@/components/ui/cx";
+import { getConfig } from "@/lib/config";
+import { coinLogoPath } from "@/lib/market/logos";
 
 /**
- * The logo of an asset from the catalog (an https URL of the data source),
- * or its first letter when there is none. No referrer is sent to the source.
+ * The logo of an asset, served by this app's /coin-logo route from its
+ * source (lib/market/logos.ts), or its first letter when there is none or
+ * its source is not an allowed host. The browser never fetches the
+ * source's host itself (#31).
  */
 export function CoinLogo({
   src,
   symbol,
   size = 28,
   className,
+  hosts,
 }: {
+  /** The logo's source URL, from the backend. */
   src?: string;
   symbol: string;
   size?: number;
   className?: string;
+  /** The allowed hosts; COIN_LOGO_HOSTS when not given. */
+  hosts?: readonly string[];
 }) {
-  if (!src) {
+  const path = src ? coinLogoPath(src, hosts ?? getConfig().coinLogoHosts) : undefined;
+  if (!path) {
     return (
       <span
         aria-hidden="true"
@@ -30,14 +39,13 @@ export function CoinLogo({
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element -- third-party logos of any host; next/image would need every host allowed
+    // eslint-disable-next-line @next/next/no-img-element -- already a small cached image of this app; next/image would fetch it a second time
     <img
-      src={src}
+      src={path}
       alt=""
       width={size}
       height={size}
       loading="lazy"
-      referrerPolicy="no-referrer"
       className={cx("shrink-0 rounded-full", className)}
     />
   );

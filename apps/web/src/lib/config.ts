@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { BRANDS, DEFAULT_BRAND, isBrand } from "@/design/brands";
 import { AVAILABLE_LOCALES, isAvailableLocale, type Locale } from "@/i18n/locales";
+import { DEFAULT_COIN_LOGO_HOSTS } from "@/lib/market/logos";
 
 /** Release regions, the same values as the backend's DEPLOYMENT_REGION. */
 export const REGIONS = ["ir", "international"] as const;
@@ -88,6 +89,28 @@ const schema = z.object({
     ),
   CMS_API_URL: baseUrl.optional(),
   CMS_MEDIA_URL: baseUrl.optional(),
+  // The hosts coin logos may come from; /coin-logo fetches only from these.
+  COIN_LOGO_HOSTS: z
+    .string()
+    .default(DEFAULT_COIN_LOGO_HOSTS.join(","))
+    .transform((value) => [
+      ...new Set(
+        value
+          .split(",")
+          .map((h) => h.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    ])
+    .pipe(
+      z.array(
+        z
+          .string()
+          .regex(
+            /^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/,
+            "must list host names such as assets.coingecko.com",
+          ),
+      ),
+    ),
   REVALIDATE_SECRET: z.string().min(32, "must be at least 32 characters").optional(),
   CMS_PREVIEW_API_KEY: z.string().min(16, "must be at least 16 characters").optional(),
   SITE_ID: z
@@ -128,6 +151,8 @@ export interface Config {
   cmsApiUrl?: string;
   /** A public base URL of CMS media (a CDN); unset, media is proxied by this app. */
   cmsMediaUrl?: string;
+  /** The hosts that coin logos are fetched from, by /coin-logo. */
+  coinLogoHosts: string[];
   /** Shared with the CMS: signs revalidation calls and preview links. */
   revalidateSecret?: string;
   /** The API key of a CMS viewer account, to read drafts in preview. */
@@ -198,6 +223,7 @@ export function parseConfig(env: Record<string, string | undefined>): Config {
     designGallery: c.DESIGN_GALLERY,
     cmsApiUrl: c.CMS_API_URL,
     cmsMediaUrl: c.CMS_MEDIA_URL,
+    coinLogoHosts: c.COIN_LOGO_HOSTS,
     revalidateSecret: c.REVALIDATE_SECRET,
     cmsPreviewApiKey: c.CMS_PREVIEW_API_KEY,
     siteId: c.SITE_ID,

@@ -49,8 +49,15 @@ const PAIRS: [string, z.ZodObject][] = [
 
 function baseType(schema: z.ZodType): string {
   let current = schema;
-  while (current instanceof z.ZodOptional || current instanceof z.ZodNullable) {
-    current = current.unwrap() as z.ZodType;
+  for (;;) {
+    if (current instanceof z.ZodOptional || current instanceof z.ZodNullable) {
+      current = current.unwrap() as z.ZodType;
+    } else if (current instanceof z.ZodPipe) {
+      // A value checked or cleaned after it is read, such as logo_url.
+      current = current.in as z.ZodType;
+    } else {
+      break;
+    }
   }
   return current.def.type;
 }

@@ -86,12 +86,24 @@ describe("VenueTable", () => {
 
 describe("CoinLogo", () => {
   it("falls back to the first letter", () => {
-    render(<CoinLogo symbol="BTC" />);
+    render(<CoinLogo symbol="BTC" hosts={[]} />);
     expect(screen.getByText("B")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("sends no referrer to the logo's host", () => {
-    const { container } = render(<CoinLogo symbol="BTC" src="https://x/btc.png" />);
-    expect(container.querySelector("img")).toHaveAttribute("referrerpolicy", "no-referrer");
+  it("serves the logo from this app, never from its source's host", () => {
+    const { container } = render(
+      <CoinLogo symbol="BTC" src="https://logos.example/btc.png" hosts={["logos.example"]} />,
+    );
+    expect(container.querySelector("img")).toHaveAttribute(
+      "src",
+      "/coin-logo?u=https%3A%2F%2Flogos.example%2Fbtc.png",
+    );
+  });
+
+  it("shows the letter for a logo on a host that is not allowed", () => {
+    render(
+      <CoinLogo symbol="BTC" src="https://elsewhere.example/btc.png" hosts={["logos.example"]} />,
+    );
+    expect(screen.getByText("B")).toHaveAttribute("aria-hidden", "true");
   });
 });

@@ -9,7 +9,7 @@ The work of [#5](https://github.com/mdastpak/crypto-blog/issues/5). Data comes f
 ### Top coins: `/{locale}/coins`
 
 - The catalog by market cap rank, 50 a page, with cursor pagination (`?cursor=`) and search (`?q=`: the exact symbol, or part of the name or slug).
-- Each row: rank, logo, name and symbol, an **Unverified** badge for coins not listed on the exchange, price and 24h change, circulating supply.
+- Each row: rank, logo ([Coin logos](#coin-logos)), name and symbol, an **Unverified** badge for coins not listed on the exchange, price and 24h change, circulating supply.
 - The list has no prices, so each row's price comes from its venues: at most 8 calls at a time, each cached for 30 s. A row whose venues fail shows a dash; a backend outage shows a notice instead of the table.
 - Search results and later pages are `noindex, follow`; the first page is indexed.
 - Rendered per request (it depends on the query); the backend answers it reads are cached.
@@ -112,3 +112,13 @@ The CMS is internal, so images reach visitors through `/cms-media/{file}` on thi
 ## Errors
 
 A page that fails to render, with nothing cached, shows a localized error with a **Try again** button. Unknown paths show the localized 404.
+
+## Coin logos
+
+The market-data sources give each asset a logo on their own image hosts, and an admin may set a currency's logo to any https URL. Browsers never fetch those hosts ([#31](https://github.com/mdastpak/crypto-blog/issues/31)): that would send every visitor's address to a third party, and the hosts are often unreachable from Iran. Pages link to `/coin-logo?u=<source URL>` on this app instead, which:
+
+- fetches only https URLs on a host in `COIN_LOGO_HOSTS` (default: `assets.coingecko.com`, `coin-images.coingecko.com`, `s2.coinmarketcap.com`), with no cookies, no referrer, and no redirects;
+- accepts PNG, JPEG, WebP, GIF, and AVIF of at most 512 KB, never SVG, and serves them with `nosniff` and a sandboxing policy;
+- keeps each logo in the shared cache for a week; while a refresh fails, the stored copy is served, so logos load while their source is down. Browsers and CDNs cache the answer for a day.
+
+A logo that is not https is dropped when the backend's answer is read; one on a host outside `COIN_LOGO_HOSTS` is shown as the coin's first letter, as is a coin with no logo. Structured data links to the logo on this site too. Add a host to `COIN_LOGO_HOSTS` when the backend's logos move, for example to the exchange's own media host.

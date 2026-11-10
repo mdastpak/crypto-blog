@@ -39,13 +39,29 @@ export const contractSchema = z.object({
   address: z.string(),
 });
 
+/**
+ * A logo URL: kept only when it is https, otherwise dropped rather than
+ * failing the whole answer. Whether its host is allowed is decided where it
+ * is shown (lib/market/logos.ts).
+ */
+const logoUrl = z
+  .string()
+  .transform((value) => {
+    try {
+      return new URL(value).protocol === "https:" ? value : undefined;
+    } catch {
+      return undefined;
+    }
+  })
+  .optional();
+
 export const assetSchema = z.object({
   slug: z.string().min(1),
   symbol: z.string().min(1),
   name: z.string().min(1),
   kind: z.string().optional(),
   description: z.string().optional(),
-  logo_url: z.string().optional(),
+  logo_url: logoUrl,
   links: z.record(z.string(), z.string()).optional(),
   market_cap_rank: z.number().int().optional(),
   circulating_supply: decimal.optional(),
@@ -141,7 +157,7 @@ export const currencySchema = z.object({
     symbol: z.string(),
     en_name: z.string().optional(),
     fa_name: z.string().optional(),
-    logo_url: z.string().optional(),
+    logo_url: logoUrl,
     contract: z.string().optional(),
     is_token: z.boolean().optional(),
     if_fiat: z.boolean().optional(),
