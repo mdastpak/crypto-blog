@@ -63,6 +63,8 @@ export interface FetchResult {
   error?: string;
   etag?: string;
   lastModified?: string;
+  /** Where the feed says it moved for good; kept until the next successful fetch says otherwise. */
+  movedTo?: string;
   /** When to fetch next. */
   nextFetchAt: Date;
 }
@@ -95,7 +97,9 @@ export async function release(
         SET lease_owner = NULL, lease_until = NULL, next_fetch_at = $3,
             etag = COALESCE($4, etag), last_modified = COALESCE($5, last_modified),
             consecutive_failures = CASE WHEN $6 THEN consecutive_failures + 1 ELSE 0 END,
-            last_status = $7, last_error = $8, last_fetched_at = now()
+            last_status = $7, last_error = $8, last_fetched_at = now(),
+            -- A fetch that got an answer says whether the feed has moved; a failed one cannot.
+            moved_to = CASE WHEN $7 IN ('ok', 'not_modified') THEN $9 ELSE moved_to END
       WHERE id = $1 AND lease_owner = $2`,
     [
       source.id,
@@ -106,6 +110,7 @@ export async function release(
       failed,
       result.status,
       result.error ?? null,
+      result.movedTo ?? null,
     ],
   );
   return rowCount === 1;
