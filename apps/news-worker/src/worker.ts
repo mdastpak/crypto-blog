@@ -34,6 +34,15 @@ export async function processSource(deps: WorkerDeps, source: LeasedSource): Pro
         retryAfterSeconds: undefined,
       };
   const labels = { source: source.id };
+  const movedTo =
+    fetched.kind === "entries" || fetched.kind === "not_modified" ? fetched.movedTo : undefined;
+  if (movedTo) {
+    log("warn", "feed moved permanently; update the sources file", {
+      source: source.id,
+      url: source.url,
+      movedTo,
+    });
+  }
 
   if (fetched.kind !== "entries") {
     const failed = fetched.kind === "error" || fetched.kind === "blocked";
@@ -47,6 +56,7 @@ export async function processSource(deps: WorkerDeps, source: LeasedSource): Pro
     await release(deps.pool, deps.config.workerId, source, {
       status: fetched.kind,
       error: failed ? fetched.reason : undefined,
+      movedTo,
       nextFetchAt: nextFetch(
         source.intervalSeconds,
         failed ? source.consecutiveFailures + 1 : 0,
@@ -83,6 +93,7 @@ export async function processSource(deps: WorkerDeps, source: LeasedSource): Pro
     status: "ok",
     etag: fetched.etag,
     lastModified: fetched.lastModified,
+    movedTo,
     nextFetchAt: nextFetch(source.intervalSeconds, 0, now),
   });
 }

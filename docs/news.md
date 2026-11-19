@@ -37,6 +37,16 @@ Sources are listed in a JSON file (`NEWS_SOURCES_FILE`, `sources.example.json`),
 - **Limits**: a 15 s timeout and a 5 MB body limit per fetch, and at most 200 entries per feed.
 - **Attribution**: the original link and the source are always kept, and the original link is what any page shows.
 
+## Egress
+
+A feed host that is compromised or misconfigured must not be able to aim the worker at the internal network. So:
+
+- **Public addresses only.** Every request, the first and each redirect, goes only to a host whose addresses are all public. Refused: loopback (`127.0.0.0/8`, `::1`), private (RFC 1918, `fc00::/7`), link-local and cloud metadata (`169.254.0.0/16`, `fe80::/10`), CGNAT (`100.64.0.0/10`), unspecified, multicast, reserved, and documentation ranges, and IPv6 addresses that carry one of those IPv4 addresses (mapped, NAT64, 6to4). A name with one such address among public ones is refused too (`src/egress.ts`).
+- **No DNS rebinding.** On a direct node, the socket dials through a `lookup` that applies the same check, so the address checked is the address dialed: a name that resolves public first and private later does not reach the private address. Through `NEWS_HTTP_PROXY` the proxy resolves names; the worker still checks each host before the request, but the proxy should enforce its own egress rules.
+- **Redirects are followed by hand**, at most 3 for a feed (5 for robots.txt, as RFC 9309 asks). Each target is checked like the first URL: a public host, never from `https` down to `http`, and its own robots.txt. A refused redirect is an `error` of the source (`last_error`); a target disallowed by its robots.txt is `blocked`.
+- **Moved feeds.** When a feed answers with a permanent redirect (`301` or `308`), the worker logs `feed moved permanently` and records the target in `news_sources.moved_to`, so an operator can update the sources file. The note is cleared when the file's URL changes.
+- **The sources file** is checked at start-up: a feed URL that is an IP literal, or a name that resolves, to a non-public address stops the worker with an error naming every such source. A name that does not resolve at that moment is let through; each fetch checks it again.
+
 ## What an item holds
 
 | Step          | Rule                                                                                                                                                                          |
@@ -151,4 +161,4 @@ Retried drafts follow the same backoff and fail after 8 tries.
 
 ## Tests
 
-`pnpm --filter news-worker test` runs the unit tests (feeds, normalization, coins, stories, robots.txt, the polite HTTP client, settings) on recorded feeds in `src/fixtures`, with no network. With `TEST_DATABASE_URL` set to an empty database, integration tests run against PostgreSQL: migrations run once from two jobs, source sync, leases shared by two workers and taken back after a crash, regions, deduplication, one story from two workers at once, a whole fetch then a `304`, and backoff; and for the editorial workflow, which stories are queued, periodic jobs on one node, drafting once despite a retried push, the review policy and regions, draft retries, idempotent post queuing, post retries and rejections, and the whole desk from draft to post, with the CMS replaced by an in-memory one. Unit tests cover the template writer, the policy, the CMS client, and the channels' formats and errors. CI runs both.
+`pnpm --filter news-worker test` runs the unit tests (feeds, normalization, coins, stories, robots.txt, the polite HTTP client, its egress rules: redirects, private addresses, `https` to `http`, robots.txt of a redirect target, at most 3 redirects, and DNS rebinding against a local server, settings) on recorded feeds in `src/fixtures`, with no network. With `TEST_DATABASE_URL` set to an empty database, integration tests run against PostgreSQL: migrations run once from two jobs, source sync, leases shared by two workers and taken back after a crash, regions, deduplication, one story from two workers at once, a whole fetch then a `304`, backoff, and a refused and a permanent redirect; and for the editorial workflow, which stories are queued, periodic jobs on one node, drafting once despite a retried push, the review policy and regions, draft retries, idempotent post queuing, post retries and rejections, and the whole desk from draft to post, with the CMS replaced by an in-memory one. Unit tests cover the template writer, the policy, the CMS client, and the channels' formats and errors. CI runs both.

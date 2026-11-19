@@ -3,7 +3,14 @@ import type { FetchOutcome, PoliteHttp } from "./http.ts";
 import type { LeasedSource } from "./store.ts";
 
 export type ProviderResult =
-  | { kind: "entries"; entries: RawEntry[]; etag?: string; lastModified?: string; baseUrl: string }
+  | {
+      kind: "entries";
+      entries: RawEntry[];
+      etag?: string;
+      lastModified?: string;
+      baseUrl: string;
+      movedTo?: string;
+    }
   | Exclude<FetchOutcome, { kind: "ok" }>;
 
 /**
@@ -29,6 +36,7 @@ export const rssProvider: Provider = {
         etag: outcome.etag,
         lastModified: outcome.lastModified,
         baseUrl: outcome.finalUrl,
+        movedTo: outcome.movedTo,
       };
     } catch (error) {
       return {

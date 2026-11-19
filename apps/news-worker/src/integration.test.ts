@@ -35,6 +35,7 @@ import {
 import { TemplateWriter } from "./writer.ts";
 
 const databaseUrl = process.env.TEST_DATABASE_URL;
+const publicLookup = async () => [{ address: "93.184.215.14", family: 4 }];
 
 const source = (id: string, extra: Partial<Source> = {}): Source => ({
   id,
@@ -55,7 +56,7 @@ describe.skipIf(!databaseUrl)("news store with PostgreSQL", () => {
   beforeAll(async () => {
     pool = createPool(databaseUrl!, 10);
     await pool.query("DROP SCHEMA public CASCADE; CREATE SCHEMA public;");
-    const all = ["001_init.sql", "002_drafts_outbox.sql"];
+    const all = ["001_init.sql", "002_drafts_outbox.sql", "003_source_moved_to.sql"];
     expect(await pendingMigrations(pool)).toEqual(all);
     // Two release jobs at once: the migrations run once.
     const [a, b] = await Promise.all([migrate(pool), migrate(pool)]);
@@ -201,6 +202,7 @@ describe.skipIf(!databaseUrl)("news store with PostgreSQL", () => {
         maxBytes: 1e6,
         hostMinIntervalMs: 0,
         fetch: fetchMock,
+        lookup: publicLookup,
       }),
       catalog,
       metrics,
@@ -257,6 +259,7 @@ describe.skipIf(!databaseUrl)("news store with PostgreSQL", () => {
         hostMinIntervalMs: 0,
         fetch: async (url: string) =>
           new Response("", { status: url.endsWith("robots.txt") ? 404 : 500 }),
+        lookup: publicLookup,
       }),
       catalog: new CatalogCache(undefined),
       metrics: new Metrics(),
@@ -280,6 +283,64 @@ describe.skipIf(!databaseUrl)("news store with PostgreSQL", () => {
       last_error: "HTTP 500",
       minutes: "30",
     });
+  });
+
+  function redirectingDeps(routes: Record<string, () => Response>) {
+    return {
+      pool,
+      http: new PoliteHttp({
+        userAgent: "CryptoBlogNewsBot/0.1",
+        timeoutMs: 1000,
+        maxBytes: 1e6,
+        hostMinIntervalMs: 0,
+        fetch: async (url: string) => routes[url]?.() ?? new Response("", { status: 404 }),
+        lookup: async (host: string) => [
+          { address: host === "internal.example" ? "10.0.0.7" : "93.184.215.14", family: 4 },
+        ],
+      }),
+      catalog: new CatalogCache(undefined),
+      metrics: new Metrics(),
+      config: {
+        workerId: "w",
+        concurrency: 1,
+        leaseSeconds: 60,
+        pollSeconds: 1,
+        region: "ir" as const,
+        clusterWindowHours: 48,
+      },
+    };
+  }
+
+  it("records a refused redirect as an error, and a permanent one as moved_to", async () => {
+    await syncSources(pool, [source("aa"), source("bb")]);
+    const deps = redirectingDeps({
+      "https://aa.example/feed": () =>
+        new Response(null, { status: 302, headers: { location: "https://internal.example/" } }),
+      "https://bb.example/feed": () =>
+        new Response(null, { status: 301, headers: { location: "https://bb.example/rss" } }),
+      "https://bb.example/rss": () => new Response(fixture("example-news.rss.xml")),
+    });
+    for (const leased of await claimDue(pool, "w", 2, 60, ["global"])) {
+      await processSource(deps, leased);
+    }
+    const state = async () =>
+      (
+        await pool.query(
+          "SELECT id, last_status, last_error, moved_to FROM news_sources ORDER BY id",
+        )
+      ).rows;
+    expect(await state()).toEqual([
+      {
+        id: "aa",
+        last_status: "error",
+        last_error: "refused: internal.example resolves to a non-public address (10.0.0.7)",
+        moved_to: null,
+      },
+      { id: "bb", last_status: "ok", last_error: null, moved_to: "https://bb.example/rss" },
+    ]);
+    // The operator updates the file: the note goes.
+    await syncSources(pool, [source("aa"), source("bb", { url: "https://bb.example/rss" })]);
+    expect((await state())[1].moved_to).toBeNull();
   });
 
   /** A story first seen `minutesAgo`, reported by the given sources. */

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { z } from "zod";
 import type { Pool } from "./db.ts";
+import { EgressError, resolvePublic, systemLookup, type LookupFn } from "./egress.ts";
 
 export const PROVIDERS = ["rss"] as const;
 
@@ -48,8 +49,41 @@ export function parseSources(json: unknown): Source[] {
   return result.data.sources;
 }
 
-export async function loadSources(file: string): Promise<Source[]> {
-  return parseSources(JSON.parse(await readFile(file, "utf8")));
+export interface SourceCheckOptions {
+  lookup?: LookupFn;
+  /** Lets a feed live on a private or loopback address. For tests only. */
+  allowPrivate?: boolean;
+}
+
+/**
+ * Refuses a sources file whose feeds point at a non-public address (an IP
+ * literal, or a name that resolves to one), so the file cannot aim the
+ * worker at an internal host by mistake. A name that does not resolve now
+ * is let through: each fetch checks the address again.
+ */
+export async function checkSourceHosts(
+  sources: Source[],
+  { lookup = systemLookup, allowPrivate = false }: SourceCheckOptions = {},
+): Promise<void> {
+  if (allowPrivate) return;
+  const problems: string[] = [];
+  await Promise.all(
+    sources.map(async (s, i) => {
+      try {
+        await resolvePublic(new URL(s.url).hostname, lookup);
+      } catch (error) {
+        if (error instanceof EgressError)
+          problems.push(`  - sources.${i}.url (${s.id}): ${error.message}`);
+      }
+    }),
+  );
+  if (problems.length) throw new Error(`Invalid sources file:\n${problems.sort().join("\n")}`);
+}
+
+export async function loadSources(file: string, options?: SourceCheckOptions): Promise<Source[]> {
+  const sources = parseSources(JSON.parse(await readFile(file, "utf8")));
+  await checkSourceHosts(sources, options);
+  return sources;
 }
 
 /**
@@ -73,6 +107,7 @@ export async function syncSources(pool: Pool, sources: Source[]): Promise<void> 
            -- A new feed URL starts without the old one's validators.
            etag = CASE WHEN news_sources.url = EXCLUDED.url THEN news_sources.etag END,
            last_modified = CASE WHEN news_sources.url = EXCLUDED.url THEN news_sources.last_modified END,
+           moved_to = CASE WHEN news_sources.url = EXCLUDED.url THEN news_sources.moved_to END,
            url = EXCLUDED.url, updated_at = now()`,
         [
           s.id,
